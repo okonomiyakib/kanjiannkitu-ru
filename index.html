@@ -185,6 +185,7 @@ body {
   cursor: pointer;
   margin-bottom: 10px;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .btn-primary:active { opacity: 0.85; }
@@ -202,6 +203,7 @@ body {
   font-weight: 700;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .btn-secondary:active { opacity: 0.8; }
@@ -320,12 +322,13 @@ body {
   font-weight: 600;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .btn-canvas-done {
   flex: 2;
   padding: 14px;
-  background: var(--text);
+  background: var(--blue);
   color: #fff;
   border: none;
   border-radius: 14px;
@@ -333,6 +336,7 @@ body {
   font-weight: 700;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 /* REVEAL AREA (after drawing) */
@@ -386,14 +390,16 @@ body {
 }
 
 .btn-assess {
-  padding: 20px 10px;
+  padding: 24px 10px;
   border: none;
-  border-radius: 16px;
-  font-size: 22px;
+  border-radius: 18px;
+  font-size: 20px;
   font-weight: 700;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: transform 0.1s;
+  touch-action: manipulation;
+  transition: transform 0.1s, opacity 0.1s;
+  line-height: 1.3;
 }
 
 .btn-assess:active { transform: scale(0.95); }
@@ -426,6 +432,7 @@ body {
   font-weight: 700;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .btn-next:active { opacity: 0.85; }
@@ -597,6 +604,15 @@ body {
   font-size: 17px;
   font-weight: 700;
   cursor: pointer;
+}
+
+/* ===== 書き問題 読み仮名 ===== */
+.q-reading-large {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.03em;
+  margin-bottom: 2px;
 }
 
 /* ===== UTIL ===== */
@@ -776,6 +792,36 @@ const KANJI_DB = {
     { kanji:"法", words:[{w:"法律",r:"ほうりつ",m:"社会のルール"},{w:"方法",r:"ほうほう",m:"やり方"}] },
     { kanji:"望", words:[{w:"希望",r:"きぼう",m:"よいことを望む気持ち"},{w:"展望",r:"てんぼう",m:"先の見通し"}] },
     { kanji:"民", words:[{w:"国民",r:"こくみん",m:"その国の人々"},{w:"民主",r:"みんしゅ",m:"国民が主役の政治"}] },
+    { kanji:"衣", words:[{w:"衣服",r:"いふく",m:"着るもの"},{w:"白衣",r:"はくい",m:"医者が着る白い上着"}] },
+    { kanji:"囲", words:[{w:"囲む",r:"かこむ",m:"周りを取り囲むこと"},{w:"範囲",r:"はんい",m:"区切られた内側の広さ"}] },
+    { kanji:"芸", words:[{w:"芸能",r:"げいのう",m:"歌・踊りなどの技芸"},{w:"演芸",r:"えんげい",m:"舞台で演じる技芸"}] },
+    { kanji:"欠", words:[{w:"欠点",r:"けってん",m:"足りない部分"},{w:"欠席",r:"けっせき",m:"出席しないこと"}] },
+    { kanji:"健", words:[{w:"健康",r:"けんこう",m:"体が丈夫なこと"},{w:"健全",r:"けんぜん",m:"心身が正常なこと"}] },
+    { kanji:"好", words:[{w:"良好",r:"りょうこう",m:"状態がよいこと"},{w:"好調",r:"こうちょう",m:"うまくいっていること"}] },
+    { kanji:"告", words:[{w:"報告",r:"ほうこく",m:"状況を知らせること"},{w:"告知",r:"こくち",m:"正式に知らせること"}] },
+    { kanji:"菜", words:[{w:"野菜",r:"やさい",m:"食用の植物"},{w:"菜食",r:"さいしょく",m:"植物を中心に食べること"}] },
+    { kanji:"察", words:[{w:"推察",r:"すいさつ",m:"事情をおしはかること"},{w:"考察",r:"こうさつ",m:"よく考えて調べること"}] },
+    { kanji:"治", words:[{w:"政治",r:"せいじ",m:"社会を治めること"},{w:"治療",r:"ちりょう",m:"病気を治すこと"}] },
+    { kanji:"照", words:[{w:"照明",r:"しょうめい",m:"光で明るくすること"},{w:"参照",r:"さんしょう",m:"参考として見ること"}] },
+    { kanji:"束", words:[{w:"約束",r:"やくそく",m:"必ず守ると決めること"},{w:"花束",r:"はなたば",m:"花を束ねたもの"}] },
+    { kanji:"卒", words:[{w:"卒業",r:"そつぎょう",m:"学校の課程を終えること"},{w:"卒論",r:"そつろん",m:"卒業のための論文"}] },
+    { kanji:"帯", words:[{w:"地帯",r:"ちたい",m:"ある区域の土地"},{w:"携帯",r:"けいたい",m:"持ち歩くこと"}] },
+    { kanji:"典", words:[{w:"辞典",r:"じてん",m:"言葉を調べる本"},{w:"古典",r:"こてん",m:"昔の文学・芸術"}] },
+    { kanji:"熱", words:[{w:"熱意",r:"ねつい",m:"物事への強い気持ち"},{w:"発熱",r:"はつねつ",m:"熱が出ること"}] },
+    { kanji:"念", words:[{w:"記念",r:"きねん",m:"忘れないようにすること"},{w:"念願",r:"ねんがん",m:"ずっと望んでいること"}] },
+    { kanji:"比", words:[{w:"比較",r:"ひかく",m:"比べること"},{w:"対比",r:"たいひ",m:"並べて比べること"}] },
+    { kanji:"便", words:[{w:"便利",r:"べんり",m:"使いやすくて助かること"},{w:"不便",r:"ふべん",m:"使いにくいこと"}] },
+    { kanji:"要", words:[{w:"重要",r:"じゅうよう",m:"大切なこと"},{w:"要点",r:"ようてん",m:"大事なポイント"}] },
+    { kanji:"連", words:[{w:"連絡",r:"れんらく",m:"知らせを送ること"},{w:"関連",r:"かんれん",m:"つながりがあること"}] },
+    { kanji:"老", words:[{w:"老人",r:"ろうじん",m:"年をとった人"},{w:"老化",r:"ろうか",m:"年をとって衰えること"}] },
+    { kanji:"令", words:[{w:"命令",r:"めいれい",m:"言いつけること"},{w:"法令",r:"ほうれい",m:"法律や規則"}] },
+    { kanji:"冷", words:[{w:"冷静",r:"れいせい",m:"落ち着いていること"},{w:"冷却",r:"れいきゃく",m:"冷やすこと"}] },
+    { kanji:"歴", words:[{w:"経歴",r:"けいれき",m:"今までの経験"},{w:"来歴",r:"らいれき",m:"これまでのいきさつ"}] },
+    { kanji:"労", words:[{w:"労働",r:"ろうどう",m:"体を使って働くこと"},{w:"勤労",r:"きんろう",m:"一生懸命働くこと"}] },
+    { kanji:"録", words:[{w:"記録",r:"きろく",m:"書き留めること"},{w:"録音",r:"ろくおん",m:"音を録ること"}] },
+    { kanji:"景", words:[{w:"景色",r:"けしき",m:"自然の眺め"},{w:"景気",r:"けいき",m:"経済の状態"}] },
+    { kanji:"型", words:[{w:"典型",r:"てんけい",m:"特徴をよく表した例"},{w:"体型",r:"たいけい",m:"体の形・スタイル"}] },
+    { kanji:"功", words:[{w:"成功",r:"せいこう",m:"うまくいくこと"},{w:"功績",r:"こうせき",m:"すぐれた働き・手柄"}] },
   ],
   5: [
     { kanji:"圧", words:[{w:"圧力",r:"あつりょく",m:"押す力"},{w:"気圧",r:"きあつ",m:"大気の圧力"}] },
@@ -826,6 +872,33 @@ const KANJI_DB = {
     { kanji:"準", words:[{w:"準備",r:"じゅんび",m:"前もって用意すること"},{w:"標準",r:"ひょうじゅん",m:"基準となるもの"}] },
     { kanji:"承", words:[{w:"承認",r:"しょうにん",m:"認めること"},{w:"承知",r:"しょうち",m:"わかること"}] },
     { kanji:"証", words:[{w:"証明",r:"しょうめい",m:"本当であることを示すこと"},{w:"保証",r:"ほしょう",m:"大丈夫だと請け合うこと"}] },
+    { kanji:"構", words:[{w:"構造",r:"こうぞう",m:"組み立ての仕組み"},{w:"構成",r:"こうせい",m:"組み立てること"}] },
+    { kanji:"志", words:[{w:"志望",r:"しぼう",m:"強く望むこと"},{w:"意志",r:"いし",m:"物事をやり遂げる心"}] },
+    { kanji:"指", words:[{w:"指示",r:"しじ",m:"さし示すこと"},{w:"指導",r:"しどう",m:"教え導くこと"}] },
+    { kanji:"象", words:[{w:"象徴",r:"しょうちょう",m:"あるものを代表して表す印"},{w:"印象",r:"いんしょう",m:"心に残った感じ"}] },
+    { kanji:"責", words:[{w:"責任",r:"せきにん",m:"果たすべき務め"},{w:"自責",r:"じせき",m:"自分を責めること"}] },
+    { kanji:"絶", words:[{w:"絶対",r:"ぜったい",m:"必ず・例外なく"},{w:"絶滅",r:"ぜつめつ",m:"完全になくなること"}] },
+    { kanji:"設", words:[{w:"設備",r:"せつび",m:"必要なものを整えること"},{w:"設立",r:"せつりつ",m:"新しく組織を作ること"}] },
+    { kanji:"想", words:[{w:"想像",r:"そうぞう",m:"頭の中で思い描くこと"},{w:"思想",r:"しそう",m:"物事についての考え方"}] },
+    { kanji:"断", words:[{w:"判断",r:"はんだん",m:"よし悪しを決めること"},{w:"断言",r:"だんげん",m:"はっきりと言い切ること"}] },
+    { kanji:"張", words:[{w:"主張",r:"しゅちょう",m:"自分の意見を述べること"},{w:"緊張",r:"きんちょう",m:"心や体がこわばること"}] },
+    { kanji:"程", words:[{w:"程度",r:"ていど",m:"物事の大きさ・レベル"},{w:"過程",r:"かてい",m:"途中の段階"}] },
+    { kanji:"統", words:[{w:"統一",r:"とういつ",m:"一つにまとめること"},{w:"大統領",r:"だいとうりょう",m:"共和国の国家元首"}] },
+    { kanji:"独", words:[{w:"独立",r:"どくりつ",m:"自分の力でやること"},{w:"独自",r:"どくじ",m:"自分だけのやり方"}] },
+    { kanji:"任", words:[{w:"信任",r:"しんにん",m:"信頼して任せること"},{w:"担任",r:"たんにん",m:"責任を持って受け持つこと"}] },
+    { kanji:"能", words:[{w:"能力",r:"のうりょく",m:"物事をやり遂げる力"},{w:"能率",r:"のうりつ",m:"仕事の効率"}] },
+    { kanji:"破", words:[{w:"破壊",r:"はかい",m:"壊すこと"},{w:"突破",r:"とっぱ",m:"困難を乗り越えること"}] },
+    { kanji:"評", words:[{w:"評価",r:"ひょうか",m:"価値を決めること"},{w:"批評",r:"ひひょう",m:"良し悪しを言うこと"}] },
+    { kanji:"復", words:[{w:"回復",r:"かいふく",m:"元の状態に戻ること"},{w:"復習",r:"ふくしゅう",m:"前に習ったことを見直すこと"}] },
+    { kanji:"報", words:[{w:"報告",r:"ほうこく",m:"状況を知らせること"},{w:"情報",r:"じょうほう",m:"役立つ知らせ・データ"}] },
+    { kanji:"豊", words:[{w:"豊富",r:"ほうふ",m:"たくさんあること"},{w:"豊か",r:"ゆたか",m:"満ち足りていること"}] },
+    { kanji:"貿", words:[{w:"貿易",r:"ぼうえき",m:"国と国の物の売り買い"},{w:"自由貿易",r:"じゆうぼうえき",m:"制限のない国際取引"}] },
+    { kanji:"務", words:[{w:"業務",r:"ぎょうむ",m:"仕事・職務"},{w:"任務",r:"にんむ",m:"割り当てられた仕事"}] },
+    { kanji:"迷", words:[{w:"迷惑",r:"めいわく",m:"困らせること"},{w:"迷路",r:"めいろ",m:"複雑な道"}] },
+    { kanji:"増", words:[{w:"増加",r:"ぞうか",m:"数が増えること"},{w:"急増",r:"きゅうぞう",m:"急に増えること"}] },
+    { kanji:"測", words:[{w:"測定",r:"そくてい",m:"計って調べること"},{w:"予測",r:"よそく",m:"前もって見当をつけること"}] },
+    { kanji:"接", words:[{w:"接続",r:"せつぞく",m:"つながること"},{w:"直接",r:"ちょくせつ",m:"間をはさまずに"}] },
+    { kanji:"導", words:[{w:"指導",r:"しどう",m:"教え導くこと"},{w:"誘導",r:"ゆうどう",m:"目的の方向へ導くこと"}] },
   ],
   6: [
     { kanji:"異", words:[{w:"異常",r:"いじょう",m:"普通でない状態"},{w:"差異",r:"さい",m:"違い"}] },
@@ -867,6 +940,36 @@ const KANJI_DB = {
     { kanji:"砂", words:[{w:"砂漠",r:"さばく",m:"雨が少ない乾燥した土地"},{w:"砂糖",r:"さとう",m:"甘みをつける調味料"}] },
     { kanji:"済", words:[{w:"経済",r:"けいざい",m:"お金・物のやり取り"},{w:"救済",r:"きゅうさい",m:"困っている人を助けること"}] },
     { kanji:"策", words:[{w:"対策",r:"たいさく",m:"問題への対応方法"},{w:"政策",r:"せいさく",m:"政治上の方針"}] },
+    { kanji:"宣", words:[{w:"宣言",r:"せんげん",m:"広く言い表すこと"},{w:"宣伝",r:"せんでん",m:"広く知らせること"}] },
+    { kanji:"専", words:[{w:"専門",r:"せんもん",m:"特定の分野を研究すること"},{w:"専業",r:"せんぎょう",m:"その仕事だけをすること"}] },
+    { kanji:"染", words:[{w:"染色",r:"せんしょく",m:"染めること"},{w:"感染",r:"かんせん",m:"病気がうつること"}] },
+    { kanji:"操", words:[{w:"操作",r:"そうさ",m:"機械などを動かすこと"},{w:"体操",r:"たいそう",m:"体を鍛える運動"}] },
+    { kanji:"創", words:[{w:"創造",r:"そうぞう",m:"新しく作り出すこと"},{w:"創立",r:"そうりつ",m:"新しく立ち上げること"}] },
+    { kanji:"尊", words:[{w:"尊重",r:"そんちょう",m:"大切にすること"},{w:"自尊心",r:"じそんしん",m:"自分を大切にする気持ち"}] },
+    { kanji:"宅", words:[{w:"住宅",r:"じゅうたく",m:"人の住む建物"},{w:"帰宅",r:"きたく",m:"家に帰ること"}] },
+    { kanji:"担", words:[{w:"担当",r:"たんとう",m:"役割を受け持つこと"},{w:"負担",r:"ふたん",m:"重荷を背負うこと"}] },
+    { kanji:"段", words:[{w:"段階",r:"だんかい",m:"順番・ステップ"},{w:"手段",r:"しゅだん",m:"目的を達成する方法"}] },
+    { kanji:"値", words:[{w:"価値",r:"かち",m:"それだけの値打ち"},{w:"数値",r:"すうち",m:"数で表した量"}] },
+    { kanji:"著", words:[{w:"著者",r:"ちょしゃ",m:"本を書いた人"},{w:"著名",r:"ちょめい",m:"名前が広く知られていること"}] },
+    { kanji:"忠", words:[{w:"忠実",r:"ちゅうじつ",m:"誠実で正直なこと"},{w:"忠告",r:"ちゅうこく",m:"真剣に言い聞かせること"}] },
+    { kanji:"展", words:[{w:"展開",r:"てんかい",m:"広がること・発展すること"},{w:"展示",r:"てんじ",m:"並べて見せること"}] },
+    { kanji:"討", words:[{w:"検討",r:"けんとう",m:"よく考えること"},{w:"討論",r:"とうろん",m:"意見を出し合って論じること"}] },
+    { kanji:"納", words:[{w:"納得",r:"なっとく",m:"十分理解して認めること"},{w:"収納",r:"しゅうのう",m:"整理してしまうこと"}] },
+    { kanji:"認", words:[{w:"確認",r:"かくにん",m:"確かめること"},{w:"認識",r:"にんしき",m:"物事をきちんと理解すること"}] },
+    { kanji:"派", words:[{w:"派遣",r:"はけん",m:"送り出すこと"},{w:"立派",r:"りっぱ",m:"すぐれていること"}] },
+    { kanji:"秘", words:[{w:"秘密",r:"ひみつ",m:"人に知られたくないこと"},{w:"秘訣",r:"ひけつ",m:"うまくいくための方法"}] },
+    { kanji:"優", words:[{w:"優秀",r:"ゆうしゅう",m:"特にすぐれていること"},{w:"優先",r:"ゆうせん",m:"他より先に扱うこと"}] },
+    { kanji:"欲", words:[{w:"欲求",r:"よっきゅう",m:"強い望み"},{w:"意欲",r:"いよく",m:"何かをしたいという気持ち"}] },
+    { kanji:"翌", words:[{w:"翌日",r:"よくじつ",m:"次の日"},{w:"翌年",r:"よくねん",m:"次の年"}] },
+    { kanji:"律", words:[{w:"規律",r:"きりつ",m:"守るべき決まり"},{w:"自律",r:"じりつ",m:"自分でルールを守ること"}] },
+    { kanji:"盟", words:[{w:"同盟",r:"どうめい",m:"共通の目的で結ぶ約束"},{w:"連盟",r:"れんめい",m:"共同目的の団体連合"}] },
+    { kanji:"訳", words:[{w:"翻訳",r:"ほんやく",m:"他の言語に直すこと"},{w:"言い訳",r:"いいわけ",m:"自分を弁解すること"}] },
+    { kanji:"郵", words:[{w:"郵便",r:"ゆうびん",m:"手紙や荷物を届けるしくみ"},{w:"郵送",r:"ゆうそう",m:"郵便で送ること"}] },
+    { kanji:"乱", words:[{w:"混乱",r:"こんらん",m:"秩序が乱れること"},{w:"反乱",r:"はんらん",m:"権力に逆らうこと"}] },
+    { kanji:"裏", words:[{w:"裏面",r:"うらめん",m:"反対側の面"},{w:"表裏",r:"ひょうり",m:"表と裏"}] },
+    { kanji:"換", words:[{w:"交換",r:"こうかん",m:"互いに取り換えること"},{w:"転換",r:"てんかん",m:"別の方向に変えること"}] },
+    { kanji:"輝", words:[{w:"光輝",r:"こうき",m:"輝かしい光"},{w:"輝く",r:"かがやく",m:"明るく光ること"}] },
+    { kanji:"揮", words:[{w:"発揮",r:"はっき",m:"能力・才能を十分に出すこと"},{w:"指揮",r:"しき",m:"指図して動かすこと"}] },
   ]
 };
 
@@ -1097,6 +1200,17 @@ function makeQ(wo, isReview) {
     : { type:'kaki', isReview, display:wo.r, hint:wo.m, answer:wo.w, wo };
 }
 
+// 書き問題のヒントから答えの漢字をマスク（□）する
+function maskAnswerKanji(hint, answer) {
+  let result = hint;
+  for (const ch of answer) {
+    if (/[\u4e00-\u9fff\u3400-\u4dbf]/.test(ch)) {
+      result = result.split(ch).join('□');
+    }
+  }
+  return result;
+}
+
 function nextSet() { return S.sets.findIndex(s => !s.done); }
 
 function startQuiz(exam) {
@@ -1170,7 +1284,7 @@ function renderQ() {
 
   } else {
     // kaki: canvas drawing
-    const cSize = Math.min(window.innerWidth - 64, 300);
+    const cSize = Math.min(window.innerWidth - 48, 340);
     wrap.innerHTML = `
       <div class="quiz-top">
         <div class="q-progress">${Q.idx+1} / ${total}</div>
@@ -1179,8 +1293,8 @@ function renderQ() {
       <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
       ${badgesHTML}
       <div class="q-card">
-        <div class="q-sub">「${q.display}」</div>
-        <div class="q-hint" style="font-size:15px;margin-top:4px;">（${q.hint}）</div>
+        <div class="q-reading-large">「${q.display}」</div>
+        <div class="q-hint" style="font-size:15px;margin-top:6px;">（${maskAnswerKanji(q.hint, q.answer)}）</div>
         <div class="q-hint" style="margin-top:8px;">漢字をマス目に書きなさい</div>
       </div>
       <div class="canvas-wrap">
@@ -1329,7 +1443,12 @@ function renderFeedback(q, ok, userAns) {
   `;
 }
 
+function vibrate(pattern) {
+  try { if (navigator.vibrate) navigator.vibrate(pattern); } catch(e) {}
+}
+
 function recordResult(q, ok) {
+  vibrate(ok ? [40] : [60, 40, 60]);
   const wk = q.wo.w;
   if (!S.kanjiStats[wk]) S.kanjiStats[wk] = {correct:0,total:0};
   S.kanjiStats[wk].total++;
