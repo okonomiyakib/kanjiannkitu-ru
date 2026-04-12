@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="漢字得点力">
+<meta name="theme-color" content="#1a73e8">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon.svg">
+<title>漢字得点力</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --blue: #1a73e8;
+  --green: #34a853;
+  --red: #ea4335;
+  --orange: #f29900;
+  --gray: #5f6368;
+  --light: #f8f9fa;
+  --border: #e0e0e0;
+  --text: #202124;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --nav-h: 60px;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+  background: #fff;
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== TOP HEADER ===== */
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  padding-top: calc(12px + env(safe-area-inset-top, 0px));
+  border-bottom: 1px solid var(--border);
+  background: #fff;
+  flex-shrink: 0;
+}
+
+.top-title { font-size: 17px; font-weight: 700; color: var(--text); }
+
+.level-chip {
+  background: var(--blue);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 20px;
+}
+
+/* ===== SCROLL AREA ===== */
+.scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 16px);
+}
+
+/* ===== BOTTOM NAV ===== */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--nav-h) + var(--safe-bottom));
+  padding-bottom: var(--safe-bottom);
+  background: #fff;
+  border-top: 1px solid var(--border);
+  display: flex;
+  z-index: 100;
+}
+
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  cursor: pointer;
+  color: var(--gray);
+  transition: color 0.15s;
+  padding-top: 4px;
+}
+
+.nav-item.active { color: var(--blue); }
+.nav-icon { font-size: 22px; line-height: 1; }
+.nav-label { font-size: 10px; font-weight: 600; }
+
+/* ===== SCREENS ===== */
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* ===== HOME SCREEN ===== */
+.home-wrap { padding: 16px; }
+
+.today-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gray);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.sets-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.set-tile {
+  flex: 1;
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  padding: 16px 10px;
+  text-align: center;
+}
+
+.set-tile.done { border-color: var(--green); background: #f0faf1; }
+.set-tile.next { border-color: var(--blue); background: #f0f6ff; }
+
+.set-num { font-size: 10px; color: var(--gray); font-weight: 700; margin-bottom: 6px; text-transform: uppercase; }
+.set-icon { font-size: 20px; margin-bottom: 4px; }
+.set-val { font-size: 20px; font-weight: 700; }
+.set-val.done { color: var(--green); }
+
+.alert-box {
+  background: #fff8e1;
+  border: 1px solid var(--orange);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 14px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.alert-count { font-weight: 700; color: #e65100; }
+
+.mini-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.mini-stat {
+  background: var(--light);
+  border-radius: 12px;
+  padding: 14px 8px;
+  text-align: center;
+}
+
+.mini-val { font-size: 22px; font-weight: 700; }
+.mini-label { font-size: 10px; color: var(--gray); margin-top: 2px; }
+
+.btn-primary {
+  display: block;
+  width: 100%;
+  padding: 18px;
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: 16px;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-bottom: 10px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-primary:active { opacity: 0.85; }
+.btn-primary:disabled { background: #ccc; }
+
+.btn-secondary {
+  display: block;
+  width: 100%;
+  padding: 16px;
+  background: #fff;
+  color: var(--red);
+  border: 2px solid var(--red);
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-secondary:active { opacity: 0.8; }
+
+/* ===== QUIZ SCREEN ===== */
+.quiz-wrap { padding: 16px; min-height: 100%; }
+
+.quiz-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.q-progress { font-size: 13px; font-weight: 700; color: var(--gray); }
+.q-timer { font-size: 20px; font-weight: 700; min-width: 52px; text-align: right; }
+.q-timer.warn { color: var(--red); }
+
+.progress-bar {
+  height: 5px;
+  background: var(--border);
+  border-radius: 3px;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--blue);
+  border-radius: 3px;
+  transition: width 0.35s ease;
+}
+
+.q-badges { display: flex; gap: 6px; margin-bottom: 14px; }
+
+.badge {
+  padding: 4px 11px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.badge-yomi { background: #e8f0fe; color: #1a73e8; }
+.badge-kaki { background: #fce8e6; color: #c5221f; }
+.badge-review { background: #fff3e0; color: #e65100; }
+
+/* QUESTION CARD */
+.q-card {
+  background: var(--light);
+  border-radius: 20px;
+  padding: 28px 20px;
+  text-align: center;
+  margin-bottom: 20px;
+  min-height: 130px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.q-main { font-size: 38px; font-weight: 700; line-height: 1.3; }
+.q-sub { font-size: 17px; color: var(--gray); margin-top: 6px; }
+.q-hint { font-size: 14px; color: var(--gray); margin-top: 4px; }
+
+/* READING INPUT */
+.yomi-input-wrap { margin-bottom: 16px; }
+
+.q-input {
+  width: 100%;
+  font-size: 28px;
+  padding: 16px;
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  outline: none;
+  text-align: center;
+  font-family: inherit;
+  background: #fff;
+  transition: border-color 0.15s;
+  -webkit-appearance: none;
+}
+
+.q-input:focus { border-color: var(--blue); }
+.q-input.correct { border-color: var(--green); background: #f0faf1; }
+.q-input.wrong { border-color: var(--red); background: #fff0ef; }
+
+/* CANVAS AREA */
+.canvas-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+#drawing-canvas {
+  border-radius: 16px;
+  border: 2px solid var(--border);
+  display: block;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.canvas-controls {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+  width: 100%;
+}
+
+.btn-canvas-clear {
+  flex: 1;
+  padding: 14px;
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  background: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-canvas-done {
+  flex: 2;
+  padding: 14px;
+  background: var(--text);
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* REVEAL AREA (after drawing) */
+.reveal-wrap { margin-bottom: 16px; }
+
+.reveal-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.reveal-panel {
+  border-radius: 16px;
+  overflow: hidden;
+  border: 2px solid var(--border);
+}
+
+.reveal-panel label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  padding: 6px;
+  background: var(--light);
+  color: var(--gray);
+}
+
+.reveal-kanji-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  font-size: 48px;
+  font-weight: 700;
+  min-height: 90px;
+}
+
+.reveal-canvas-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  min-height: 90px;
+}
+
+.assess-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.btn-assess {
+  padding: 20px 10px;
+  border: none;
+  border-radius: 16px;
+  font-size: 22px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.1s;
+}
+
+.btn-assess:active { transform: scale(0.95); }
+.btn-correct { background: var(--green); color: #fff; }
+.btn-wrong-ans { background: var(--red); color: #fff; }
+
+/* FEEDBACK */
+.feedback-box {
+  padding: 16px;
+  border-radius: 14px;
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.feedback-box.correct { background: #f0faf1; color: #1b5e20; }
+.feedback-box.wrong { background: #fff0ef; color: #b71c1c; }
+.feedback-ans { font-size: 26px; font-weight: 700; display: block; margin-top: 6px; }
+.feedback-detail { font-size: 13px; color: var(--gray); display: block; margin-top: 4px; }
+
+.btn-next {
+  display: block;
+  width: 100%;
+  padding: 18px;
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: 16px;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-next:active { opacity: 0.85; }
+
+/* ===== RESULT ===== */
+.result-card {
+  text-align: center;
+  padding: 36px 20px 28px;
+  background: var(--light);
+  border-radius: 20px;
+  margin-bottom: 20px;
+}
+
+.result-score { font-size: 72px; font-weight: 700; line-height: 1; }
+.result-score.perfect { color: var(--green); }
+.result-score.good { color: var(--blue); }
+.result-score.poor { color: var(--red); }
+.result-msg { font-size: 17px; color: var(--gray); margin-top: 8px; }
+
+.wrong-heading {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gray);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+.wrong-row {
+  display: flex;
+  align-items: center;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 6px;
+  gap: 12px;
+}
+
+.wrong-kanji { font-size: 24px; font-weight: 700; }
+.wrong-info { flex: 1; }
+.wrong-word { font-size: 16px; font-weight: 600; }
+.wrong-reading { font-size: 12px; color: var(--gray); }
+.wrong-tag { font-size: 11px; color: var(--orange); font-weight: 700; }
+
+/* ===== STATS SCREEN ===== */
+.stats-wrap { padding: 16px; }
+
+.section-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gray);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.week-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 90px;
+  margin-bottom: 20px;
+  padding: 0 4px;
+}
+
+.bar-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  gap: 5px;
+}
+
+.bar-fill {
+  width: 100%;
+  border-radius: 5px 5px 0 0;
+  background: var(--blue);
+  min-height: 3px;
+}
+
+.bar-fill.high { background: var(--green); }
+.bar-day { font-size: 11px; color: var(--gray); }
+
+.weak-item {
+  display: flex;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  margin-bottom: 8px;
+  gap: 12px;
+}
+
+.weak-kanji { font-size: 30px; font-weight: 700; min-width: 42px; text-align: center; }
+.weak-info { flex: 1; min-width: 0; }
+.weak-word { font-size: 16px; font-weight: 600; }
+.weak-reading { font-size: 12px; color: var(--gray); }
+.weak-pct-wrap { width: 64px; text-align: right; }
+.weak-pct-num { font-size: 13px; color: var(--gray); margin-bottom: 4px; }
+.weak-bar-bg { background: var(--border); border-radius: 3px; height: 5px; }
+.weak-bar-fill { background: var(--red); height: 5px; border-radius: 3px; }
+
+/* ===== REVIEW SCREEN ===== */
+.review-wrap { padding: 16px; }
+
+.review-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.review-tile {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 8px;
+  text-align: center;
+}
+
+.rt-kanji { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+.rt-reading { font-size: 11px; color: var(--gray); margin-bottom: 8px; }
+.rt-dots { display: flex; gap: 4px; justify-content: center; }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--border); }
+.dot.on { background: var(--green); }
+
+/* ===== EMPTY ===== */
+.empty {
+  text-align: center;
+  padding: 56px 20px;
+  color: var(--gray);
+}
+
+.empty-icon { font-size: 44px; margin-bottom: 12px; }
+.empty-msg { font-size: 15px; }
+
+/* ===== MODAL ===== */
+.modal-bg {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  display: none;
+}
+
+.modal-bg.show { display: flex; }
+
+.modal {
+  background: #fff;
+  border-radius: 24px;
+  padding: 40px 28px;
+  max-width: 300px;
+  width: 90%;
+  text-align: center;
+}
+
+.modal-icon { font-size: 52px; margin-bottom: 12px; }
+.modal-title { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+.modal-sub { font-size: 14px; color: var(--gray); margin-bottom: 28px; }
+.modal-btn {
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  padding: 14px 36px;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ===== UTIL ===== */
+.hidden { display: none !important; }
+.mt8 { margin-top: 8px; }
+.mt16 { margin-top: 16px; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+  <div class="top-title" id="top-title">漢字得点力</div>
+  <div class="level-chip" id="level-chip">小4</div>
+</div>
+
+<!-- SCROLL AREA -->
+<div class="scroll-area" id="scroll-area">
+
+  <!-- HOME SCREEN -->
+  <div class="screen active" id="screen-home">
+    <div class="home-wrap">
+      <div class="today-label">今日の進捗</div>
+      <div class="sets-row" id="sets-row"></div>
+      <div id="review-alert" class="alert-box hidden">
+        <span>⚠️</span>
+        <span>復習 <span class="alert-count" id="review-count">0</span> 問あります</span>
+      </div>
+      <div class="mini-stats">
+        <div class="mini-stat">
+          <div class="mini-val" id="h-today">—</div>
+          <div class="mini-label">今日の正答率</div>
+        </div>
+        <div class="mini-stat">
+          <div class="mini-val" id="h-streak">0</div>
+          <div class="mini-label">連続学習日</div>
+        </div>
+        <div class="mini-stat">
+          <div class="mini-val" id="h-total">0</div>
+          <div class="mini-label">累計問題数</div>
+        </div>
+      </div>
+      <button class="btn-primary" id="btn-go" onclick="startQuiz(false)">学習スタート</button>
+      <button class="btn-secondary" onclick="startQuiz(true)">試験形式モード（時間制限）</button>
+    </div>
+  </div>
+
+  <!-- QUIZ SCREEN -->
+  <div class="screen" id="screen-quiz">
+    <div class="quiz-wrap" id="quiz-wrap">
+      <!-- Dynamically filled -->
+    </div>
+  </div>
+
+  <!-- STATS SCREEN -->
+  <div class="screen" id="screen-stats">
+    <div class="stats-wrap">
+      <div class="section-title">正答率（過去7日）</div>
+      <div class="week-chart" id="week-chart"></div>
+      <div class="mini-stats" style="margin-bottom:24px;">
+        <div class="mini-stat">
+          <div class="mini-val" id="s-total">0</div>
+          <div class="mini-label">総問題数</div>
+        </div>
+        <div class="mini-stat">
+          <div class="mini-val" id="s-pct">—</div>
+          <div class="mini-label">全体正答率</div>
+        </div>
+        <div class="mini-stat">
+          <div class="mini-val" id="s-level">小4</div>
+          <div class="mini-label">現在レベル</div>
+        </div>
+      </div>
+      <div class="section-title">苦手漢字リスト</div>
+      <div id="weak-list"></div>
+    </div>
+  </div>
+
+  <!-- REVIEW SCREEN -->
+  <div class="screen" id="screen-review">
+    <div class="review-wrap">
+      <div class="section-title">復習リスト（3回連続正解で卒業）</div>
+      <div id="review-grid"></div>
+    </div>
+  </div>
+
+</div><!-- /scroll-area -->
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <div class="nav-item active" id="nav-home" onclick="showScreen('home')">
+    <div class="nav-icon">🏠</div>
+    <div class="nav-label">ホーム</div>
+  </div>
+  <div class="nav-item" id="nav-stats" onclick="showScreen('stats')">
+    <div class="nav-icon">📊</div>
+    <div class="nav-label">成績</div>
+  </div>
+  <div class="nav-item" id="nav-review" onclick="showScreen('review')">
+    <div class="nav-icon">📋</div>
+    <div class="nav-label">復習リスト</div>
+  </div>
+</nav>
+
+<!-- LEVEL UP MODAL -->
+<div class="modal-bg" id="modal-levelup">
+  <div class="modal">
+    <div class="modal-icon">🎯</div>
+    <div class="modal-title" id="modal-title">レベルアップ！</div>
+    <div class="modal-sub" id="modal-sub">正答率80%達成</div>
+    <button class="modal-btn" onclick="closeModal()">続ける</button>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ══════════════════════════════════════════════════════════════
+//  KANJI DATA  （小4〜小6 中学受験頻出）
+// ══════════════════════════════════════════════════════════════
+const KANJI_DB = {
+  4: [
+    { kanji:"愛", words:[{w:"愛情",r:"あいじょう",m:"愛する気持ち"},{w:"愛読",r:"あいどく",m:"好んで読むこと"}] },
+    { kanji:"案", words:[{w:"案内",r:"あんない",m:"道を教えること"},{w:"提案",r:"ていあん",m:"意見を出すこと"}] },
+    { kanji:"以", words:[{w:"以上",r:"いじょう",m:"それよりも上"},{w:"以外",r:"いがい",m:"それを除いたもの"}] },
+    { kanji:"位", words:[{w:"位置",r:"いち",m:"場所・立場"},{w:"上位",r:"じょうい",m:"上の順位"}] },
+    { kanji:"印", words:[{w:"印刷",r:"いんさつ",m:"紙に文字を刷ること"},{w:"目印",r:"めじるし",m:"目当てのしるし"}] },
+    { kanji:"英", words:[{w:"英語",r:"えいご",m:"イギリスの言語"},{w:"英才",r:"えいさい",m:"すぐれた才能"}] },
+    { kanji:"栄", words:[{w:"栄光",r:"えいこう",m:"ほまれある輝き"},{w:"繁栄",r:"はんえい",m:"さかえること"}] },
+    { kanji:"塩", words:[{w:"塩分",r:"えんぶん",m:"塩の成分"},{w:"食塩",r:"しょくえん",m:"料理に使う塩"}] },
+    { kanji:"億", words:[{w:"億円",r:"おくえん",m:"1億の円"},{w:"数億",r:"すうおく",m:"数億という数"}] },
+    { kanji:"加", words:[{w:"加算",r:"かさん",m:"足し算"},{w:"参加",r:"さんか",m:"集まりに加わること"}] },
+    { kanji:"果", words:[{w:"果物",r:"くだもの",m:"木になる食べ物"},{w:"結果",r:"けっか",m:"物事の終わり"}] },
+    { kanji:"課", words:[{w:"課題",r:"かだい",m:"与えられた問題"},{w:"課税",r:"かぜい",m:"税金をかけること"}] },
+    { kanji:"改", words:[{w:"改善",r:"かいぜん",m:"より良くすること"},{w:"改正",r:"かいせい",m:"正しく直すこと"}] },
+    { kanji:"各", words:[{w:"各自",r:"かくじ",m:"それぞれ"},{w:"各地",r:"かくち",m:"いろいろな土地"}] },
+    { kanji:"覚", words:[{w:"覚悟",r:"かくご",m:"心の準備"},{w:"感覚",r:"かんかく",m:"感じる力"}] },
+    { kanji:"完", words:[{w:"完成",r:"かんせい",m:"仕上がること"},{w:"完全",r:"かんぜん",m:"欠けがないこと"}] },
+    { kanji:"観", words:[{w:"観察",r:"かんさつ",m:"よく見て調べること"},{w:"観光",r:"かんこう",m:"名所を見て回ること"}] },
+    { kanji:"願", words:[{w:"願望",r:"がんぼう",m:"強い望み"},{w:"志願",r:"しがん",m:"自ら望んで申し込む"}] },
+    { kanji:"関", words:[{w:"関係",r:"かんけい",m:"つながり"},{w:"関心",r:"かんしん",m:"興味を持つこと"}] },
+    { kanji:"季", words:[{w:"季節",r:"きせつ",m:"春夏秋冬"},{w:"四季",r:"しき",m:"春・夏・秋・冬"}] },
+    { kanji:"機", words:[{w:"機会",r:"きかい",m:"ちょうどよい時"},{w:"機能",r:"きのう",m:"働き・はたらき"}] },
+    { kanji:"議", words:[{w:"議論",r:"ぎろん",m:"意見を述べ合うこと"},{w:"会議",r:"かいぎ",m:"話し合いの集まり"}] },
+    { kanji:"求", words:[{w:"要求",r:"ようきゅう",m:"強く求めること"},{w:"求人",r:"きゅうじん",m:"働く人を募集すること"}] },
+    { kanji:"救", words:[{w:"救助",r:"きゅうじょ",m:"助けること"},{w:"救急",r:"きゅうきゅう",m:"急いで助けること"}] },
+    { kanji:"給", words:[{w:"給食",r:"きゅうしょく",m:"学校の昼ごはん"},{w:"給料",r:"きゅうりょう",m:"仕事の報酬"}] },
+    { kanji:"挙", words:[{w:"挙手",r:"きょしゅ",m:"手を挙げること"},{w:"選挙",r:"せんきょ",m:"代表を選ぶこと"}] },
+    { kanji:"競", words:[{w:"競争",r:"きょうそう",m:"勝ち負けを争うこと"},{w:"競技",r:"きょうぎ",m:"スポーツの試合"}] },
+    { kanji:"共", words:[{w:"共同",r:"きょうどう",m:"一緒にすること"},{w:"共通",r:"きょうつう",m:"みんなに当てはまること"}] },
+    { kanji:"協", words:[{w:"協力",r:"きょうりょく",m:"力を合わせること"},{w:"協調",r:"きょうちょう",m:"仲良く調和すること"}] },
+    { kanji:"建", words:[{w:"建物",r:"たてもの",m:"家・ビルなど"},{w:"建設",r:"けんせつ",m:"建て作ること"}] },
+    { kanji:"験", words:[{w:"経験",r:"けいけん",m:"実際に体験すること"},{w:"試験",r:"しけん",m:"知識を試すテスト"}] },
+    { kanji:"候", words:[{w:"天候",r:"てんこう",m:"天気の状態"},{w:"気候",r:"きこう",m:"その土地の天気の特徴"}] },
+    { kanji:"差", words:[{w:"差別",r:"さべつ",m:"不公平な扱い"},{w:"格差",r:"かくさ",m:"程度の違い"}] },
+    { kanji:"材", words:[{w:"材料",r:"ざいりょう",m:"作るための物"},{w:"食材",r:"しょくざい",m:"料理の材料"}] },
+    { kanji:"産", words:[{w:"産業",r:"さんぎょう",m:"物を作る仕事"},{w:"出産",r:"しゅっさん",m:"赤ちゃんを産むこと"}] },
+    { kanji:"試", words:[{w:"試合",r:"しあい",m:"競技の勝負"},{w:"試験",r:"しけん",m:"知識・技術を試すこと"}] },
+    { kanji:"史", words:[{w:"歴史",r:"れきし",m:"過去の出来事"},{w:"史実",r:"しじつ",m:"歴史上の事実"}] },
+    { kanji:"種", words:[{w:"種類",r:"しゅるい",m:"性質ごとのグループ"},{w:"人種",r:"じんしゅ",m:"人間の種別"}] },
+    { kanji:"省", words:[{w:"反省",r:"はんせい",m:"自分を振り返ること"},{w:"省略",r:"しょうりゃく",m:"省いてまとめること"}] },
+    { kanji:"信", words:[{w:"信頼",r:"しんらい",m:"信じて頼ること"},{w:"自信",r:"じしん",m:"自分を信じる心"}] },
+    { kanji:"清", words:[{w:"清潔",r:"せいけつ",m:"きれいでよごれがない"},{w:"清流",r:"せいりゅう",m:"きれいな流れ"}] },
+    { kanji:"節", words:[{w:"節約",r:"せつやく",m:"むだを省くこと"},{w:"季節",r:"きせつ",m:"春夏秋冬"}] },
+    { kanji:"戦", words:[{w:"戦争",r:"せんそう",m:"国同士の戦い"},{w:"挑戦",r:"ちょうせん",m:"困難に立ち向かうこと"}] },
+    { kanji:"選", words:[{w:"選択",r:"せんたく",m:"選ぶこと"},{w:"選手",r:"せんしゅ",m:"競技に参加する人"}] },
+    { kanji:"続", words:[{w:"継続",r:"けいぞく",m:"続けること"},{w:"連続",r:"れんぞく",m:"続いて起こること"}] },
+    { kanji:"達", words:[{w:"友達",r:"ともだち",m:"仲良しの人"},{w:"到達",r:"とうたつ",m:"目的地に着くこと"}] },
+    { kanji:"単", words:[{w:"単語",r:"たんご",m:"言葉の一つ一つ"},{w:"単純",r:"たんじゅん",m:"シンプルなこと"}] },
+    { kanji:"伝", words:[{w:"伝統",r:"でんとう",m:"受け継がれてきたもの"},{w:"伝記",r:"でんき",m:"人の一生を書いた本"}] },
+    { kanji:"特", words:[{w:"特徴",r:"とくちょう",m:"他と違う点"},{w:"特別",r:"とくべつ",m:"他と違うこと"}] },
+    { kanji:"努", words:[{w:"努力",r:"どりょく",m:"一生懸命やること"}] },
+    { kanji:"費", words:[{w:"費用",r:"ひよう",m:"使うお金"},{w:"消費",r:"しょうひ",m:"使ってなくすこと"}] },
+    { kanji:"必", words:[{w:"必要",r:"ひつよう",m:"なくてはならないこと"},{w:"必死",r:"ひっし",m:"死ぬ気で頑張ること"}] },
+    { kanji:"標", words:[{w:"目標",r:"もくひょう",m:"目指す目当て"},{w:"標準",r:"ひょうじゅん",m:"基準となるもの"}] },
+    { kanji:"変", words:[{w:"変化",r:"へんか",m:"変わること"},{w:"変換",r:"へんかん",m:"別の形にすること"}] },
+    { kanji:"法", words:[{w:"法律",r:"ほうりつ",m:"社会のルール"},{w:"方法",r:"ほうほう",m:"やり方"}] },
+    { kanji:"望", words:[{w:"希望",r:"きぼう",m:"よいことを望む気持ち"},{w:"展望",r:"てんぼう",m:"先の見通し"}] },
+    { kanji:"民", words:[{w:"国民",r:"こくみん",m:"その国の人々"},{w:"民主",r:"みんしゅ",m:"国民が主役の政治"}] },
+  ],
+  5: [
+    { kanji:"圧", words:[{w:"圧力",r:"あつりょく",m:"押す力"},{w:"気圧",r:"きあつ",m:"大気の圧力"}] },
+    { kanji:"移", words:[{w:"移動",r:"いどう",m:"場所を変えること"},{w:"転移",r:"てんい",m:"他に移ること"}] },
+    { kanji:"因", words:[{w:"原因",r:"げんいん",m:"物事が起きたもと"},{w:"因果",r:"いんが",m:"原因と結果"}] },
+    { kanji:"永", words:[{w:"永遠",r:"えいえん",m:"いつまでも続くこと"},{w:"永久",r:"えいきゅう",m:"限りなく続くこと"}] },
+    { kanji:"営", words:[{w:"経営",r:"けいえい",m:"会社などを運営すること"},{w:"営業",r:"えいぎょう",m:"商売をすること"}] },
+    { kanji:"益", words:[{w:"利益",r:"りえき",m:"もうけ・得"},{w:"公益",r:"こうえき",m:"社会全体の利益"}] },
+    { kanji:"演", words:[{w:"演説",r:"えんぜつ",m:"大勢の前で話すこと"},{w:"演奏",r:"えんそう",m:"楽器を弾くこと"}] },
+    { kanji:"応", words:[{w:"応答",r:"おうとう",m:"問いに答えること"},{w:"対応",r:"たいおう",m:"状況に合わせて対処すること"}] },
+    { kanji:"仮", words:[{w:"仮定",r:"かてい",m:"仮にそうだとすること"},{w:"仮説",r:"かせつ",m:"仮に立てた説明"}] },
+    { kanji:"可", words:[{w:"可能",r:"かのう",m:"できること"},{w:"許可",r:"きょか",m:"許すこと"}] },
+    { kanji:"過", words:[{w:"過去",r:"かこ",m:"以前のこと"},{w:"通過",r:"つうか",m:"通り過ぎること"}] },
+    { kanji:"解", words:[{w:"解決",r:"かいけつ",m:"問題を解くこと"},{w:"理解",r:"りかい",m:"わかること"}] },
+    { kanji:"格", words:[{w:"資格",r:"しかく",m:"認められた地位・能力"},{w:"価格",r:"かかく",m:"値段"}] },
+    { kanji:"確", words:[{w:"確認",r:"かくにん",m:"確かめること"},{w:"正確",r:"せいかく",m:"間違いがないこと"}] },
+    { kanji:"幹", words:[{w:"幹部",r:"かんぶ",m:"中心となる人物"},{w:"基幹",r:"きかん",m:"基本となる大切な部分"}] },
+    { kanji:"眼", words:[{w:"眼科",r:"がんか",m:"目を専門にする医院"},{w:"眼鏡",r:"めがね",m:"視力を補う器具"}] },
+    { kanji:"紀", words:[{w:"世紀",r:"せいき",m:"100年の期間"},{w:"紀元",r:"きげん",m:"年代の数え始め"}] },
+    { kanji:"基", words:[{w:"基礎",r:"きそ",m:"物事の土台"},{w:"基本",r:"きほん",m:"根本となること"}] },
+    { kanji:"規", words:[{w:"規則",r:"きそく",m:"守るべき決まり"},{w:"規模",r:"きぼ",m:"物事の大きさ"}] },
+    { kanji:"技", words:[{w:"技術",r:"ぎじゅつ",m:"物事をうまくやる方法"},{w:"競技",r:"きょうぎ",m:"勝ち負けを競うこと"}] },
+    { kanji:"義", words:[{w:"義務",r:"ぎむ",m:"しなければならないこと"},{w:"正義",r:"せいぎ",m:"正しい道理"}] },
+    { kanji:"居", words:[{w:"居住",r:"きょじゅう",m:"住んでいること"},{w:"住居",r:"じゅうきょ",m:"住む場所"}] },
+    { kanji:"許", words:[{w:"許可",r:"きょか",m:"認めること"},{w:"免許",r:"めんきょ",m:"公的に認められた資格"}] },
+    { kanji:"境", words:[{w:"境界",r:"きょうかい",m:"区切りとなる線"},{w:"環境",r:"かんきょう",m:"周りの状況"}] },
+    { kanji:"均", words:[{w:"均等",r:"きんとう",m:"等しいこと"},{w:"平均",r:"へいきん",m:"全体の真ん中の値"}] },
+    { kanji:"禁", words:[{w:"禁止",r:"きんし",m:"してはいけないこと"},{w:"禁煙",r:"きんえん",m:"タバコを吸わないこと"}] },
+    { kanji:"経", words:[{w:"経験",r:"けいけん",m:"実際に体験すること"},{w:"経済",r:"けいざい",m:"お金・物のやり取り"}] },
+    { kanji:"険", words:[{w:"危険",r:"きけん",m:"危ないこと"},{w:"険しい",r:"けわしい",m:"傾きが急なこと"}] },
+    { kanji:"検", words:[{w:"検査",r:"けんさ",m:"調べること"},{w:"検討",r:"けんとう",m:"よく考えること"}] },
+    { kanji:"限", words:[{w:"限界",r:"げんかい",m:"これ以上できない境"},{w:"制限",r:"せいげん",m:"限りを設けること"}] },
+    { kanji:"護", words:[{w:"保護",r:"ほご",m:"守ること"},{w:"護身",r:"ごしん",m:"自分の身を守ること"}] },
+    { kanji:"効", words:[{w:"効果",r:"こうか",m:"ある結果をもたらす働き"},{w:"有効",r:"ゆうこう",m:"効果があること"}] },
+    { kanji:"耕", words:[{w:"耕作",r:"こうさく",m:"田畑を耕すこと"},{w:"農耕",r:"のうこう",m:"田畑を耕して作物を作ること"}] },
+    { kanji:"興", words:[{w:"興味",r:"きょうみ",m:"関心を持つこと"},{w:"振興",r:"しんこう",m:"盛んにすること"}] },
+    { kanji:"混", words:[{w:"混雑",r:"こんざつ",m:"込み合うこと"},{w:"混乱",r:"こんらん",m:"秩序が乱れること"}] },
+    { kanji:"査", words:[{w:"調査",r:"ちょうさ",m:"詳しく調べること"},{w:"審査",r:"しんさ",m:"基準に照らし調べること"}] },
+    { kanji:"再", words:[{w:"再生",r:"さいせい",m:"もう一度生かすこと"},{w:"再度",r:"さいど",m:"もう一度"}] },
+    { kanji:"罪", words:[{w:"犯罪",r:"はんざい",m:"法律に違反する行為"},{w:"罪悪",r:"ざいあく",m:"悪い行い"}] },
+    { kanji:"財", words:[{w:"財産",r:"ざいさん",m:"持っている物・お金"},{w:"財政",r:"ざいせい",m:"国・団体のお金の管理"}] },
+    { kanji:"在", words:[{w:"存在",r:"そんざい",m:"あること・いること"},{w:"在学",r:"ざいがく",m:"学校に通っていること"}] },
+    { kanji:"支", words:[{w:"支持",r:"しじ",m:"援助して認めること"},{w:"支配",r:"しはい",m:"自分の意のままにすること"}] },
+    { kanji:"識", words:[{w:"知識",r:"ちしき",m:"知っていること"},{w:"常識",r:"じょうしき",m:"社会の普通の判断力"}] },
+    { kanji:"質", words:[{w:"質問",r:"しつもん",m:"わからないことを聞くこと"},{w:"品質",r:"ひんしつ",m:"品物の良し悪し"}] },
+    { kanji:"収", words:[{w:"収入",r:"しゅうにゅう",m:"入ってくるお金"},{w:"収穫",r:"しゅうかく",m:"作物を取り入れること"}] },
+    { kanji:"術", words:[{w:"芸術",r:"げいじゅつ",m:"美を表現する活動"},{w:"技術",r:"ぎじゅつ",m:"物事をうまくやる方法"}] },
+    { kanji:"準", words:[{w:"準備",r:"じゅんび",m:"前もって用意すること"},{w:"標準",r:"ひょうじゅん",m:"基準となるもの"}] },
+    { kanji:"承", words:[{w:"承認",r:"しょうにん",m:"認めること"},{w:"承知",r:"しょうち",m:"わかること"}] },
+    { kanji:"証", words:[{w:"証明",r:"しょうめい",m:"本当であることを示すこと"},{w:"保証",r:"ほしょう",m:"大丈夫だと請け合うこと"}] },
+  ],
+  6: [
+    { kanji:"異", words:[{w:"異常",r:"いじょう",m:"普通でない状態"},{w:"差異",r:"さい",m:"違い"}] },
+    { kanji:"遺", words:[{w:"遺産",r:"いさん",m:"後に残された財産"},{w:"遺跡",r:"いせき",m:"昔の人が残した跡"}] },
+    { kanji:"域", words:[{w:"地域",r:"ちいき",m:"ある範囲の土地"},{w:"領域",r:"りょういき",m:"支配する範囲"}] },
+    { kanji:"宇", words:[{w:"宇宙",r:"うちゅう",m:"地球の外の広い空間"}] },
+    { kanji:"映", words:[{w:"映画",r:"えいが",m:"スクリーンに映す物語"},{w:"反映",r:"はんえい",m:"影響が現れること"}] },
+    { kanji:"延", words:[{w:"延長",r:"えんちょう",m:"長さ・時間を伸ばすこと"},{w:"延期",r:"えんき",m:"期日を延ばすこと"}] },
+    { kanji:"恩", words:[{w:"恩人",r:"おんじん",m:"親切にしてくれた人"},{w:"報恩",r:"ほうおん",m:"恩に報いること"}] },
+    { kanji:"我", words:[{w:"我慢",r:"がまん",m:"こらえること"},{w:"自我",r:"じが",m:"自分自身"}] },
+    { kanji:"拡", words:[{w:"拡大",r:"かくだい",m:"広げて大きくすること"},{w:"拡張",r:"かくちょう",m:"広げて伸ばすこと"}] },
+    { kanji:"革", words:[{w:"改革",r:"かいかく",m:"制度などを改めること"},{w:"革命",r:"かくめい",m:"根本から変えること"}] },
+    { kanji:"閣", words:[{w:"内閣",r:"ないかく",m:"大臣たちの政治機関"},{w:"閣議",r:"かくぎ",m:"内閣の会議"}] },
+    { kanji:"干", words:[{w:"干潮",r:"かんちょう",m:"潮が引いた状態"},{w:"干渉",r:"かんしょう",m:"他の事に口出しすること"}] },
+    { kanji:"看", words:[{w:"看護",r:"かんご",m:"病人の世話をすること"},{w:"看板",r:"かんばん",m:"店や商品の表示板"}] },
+    { kanji:"簡", words:[{w:"簡単",r:"かんたん",m:"やさしいこと"},{w:"簡潔",r:"かんけつ",m:"短くてはっきりしていること"}] },
+    { kanji:"危", words:[{w:"危険",r:"きけん",m:"危ないこと"},{w:"危機",r:"きき",m:"危ない状況"}] },
+    { kanji:"貴", words:[{w:"貴重",r:"きちょう",m:"とても価値があること"},{w:"貴族",r:"きぞく",m:"身分の高い家柄"}] },
+    { kanji:"疑", words:[{w:"疑問",r:"ぎもん",m:"不思議に思うこと"},{w:"疑惑",r:"ぎわく",m:"怪しいと思うこと"}] },
+    { kanji:"吸", words:[{w:"吸収",r:"きゅうしゅう",m:"吸い取ること"},{w:"呼吸",r:"こきゅう",m:"息をすること"}] },
+    { kanji:"供", words:[{w:"供給",r:"きょうきゅう",m:"求めに応じて与えること"}] },
+    { kanji:"郷", words:[{w:"故郷",r:"こきょう",m:"生まれ育った土地"},{w:"郷土",r:"きょうど",m:"生まれ育った土地"}] },
+    { kanji:"勤", words:[{w:"勤勉",r:"きんべん",m:"一生懸命に励むこと"},{w:"出勤",r:"しゅっきん",m:"職場に出ること"}] },
+    { kanji:"筋", words:[{w:"筋肉",r:"きんにく",m:"体を動かす組織"},{w:"筋道",r:"すじみち",m:"話の道筋"}] },
+    { kanji:"敬", words:[{w:"尊敬",r:"そんけい",m:"敬って大切にすること"},{w:"敬語",r:"けいご",m:"相手を尊重した言葉"}] },
+    { kanji:"警", words:[{w:"警察",r:"けいさつ",m:"治安を守る機関"},{w:"警告",r:"けいこく",m:"注意を与えること"}] },
+    { kanji:"激", words:[{w:"激励",r:"げきれい",m:"励ますこと"},{w:"感激",r:"かんげき",m:"深く感動すること"}] },
+    { kanji:"権", words:[{w:"権利",r:"けんり",m:"当然もつことができる資格"},{w:"権力",r:"けんりょく",m:"他を支配できる力"}] },
+    { kanji:"憲", words:[{w:"憲法",r:"けんぽう",m:"国の最高法規"},{w:"立憲",r:"りっけん",m:"憲法に基づく政治"}] },
+    { kanji:"源", words:[{w:"資源",r:"しげん",m:"役に立つ自然の材料"},{w:"起源",r:"きげん",m:"物事の始まり"}] },
+    { kanji:"厳", words:[{w:"厳格",r:"げんかく",m:"きびしいこと"},{w:"厳重",r:"げんじゅう",m:"厳しく注意すること"}] },
+    { kanji:"誤", words:[{w:"誤解",r:"ごかい",m:"間違って理解すること"},{w:"誤り",r:"あやまり",m:"間違い"}] },
+    { kanji:"孝", words:[{w:"孝行",r:"こうこう",m:"親を大切にすること"},{w:"親孝行",r:"おやこうこう",m:"親に尽くすこと"}] },
+    { kanji:"皇", words:[{w:"天皇",r:"てんのう",m:"日本の君主"},{w:"皇族",r:"こうぞく",m:"天皇の一族"}] },
+    { kanji:"紅", words:[{w:"紅葉",r:"こうよう",m:"葉が赤く色づくこと"},{w:"紅白",r:"こうはく",m:"赤と白"}] },
+    { kanji:"降", words:[{w:"降水",r:"こうすい",m:"雨や雪が降ること"},{w:"降下",r:"こうか",m:"下に降りること"}] },
+    { kanji:"刻", words:[{w:"時刻",r:"じこく",m:"その時の時間"},{w:"深刻",r:"しんこく",m:"事態が重大なこと"}] },
+    { kanji:"困", words:[{w:"困難",r:"こんなん",m:"難しくて苦しいこと"},{w:"困惑",r:"こんわく",m:"どうしたらよいか迷うこと"}] },
+    { kanji:"砂", words:[{w:"砂漠",r:"さばく",m:"雨が少ない乾燥した土地"},{w:"砂糖",r:"さとう",m:"甘みをつける調味料"}] },
+    { kanji:"済", words:[{w:"経済",r:"けいざい",m:"お金・物のやり取り"},{w:"救済",r:"きゅうさい",m:"困っている人を助けること"}] },
+    { kanji:"策", words:[{w:"対策",r:"たいさく",m:"問題への対応方法"},{w:"政策",r:"せいさく",m:"政治上の方針"}] },
+  ]
+};
+
+// ══════════════════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════════════════
+const STORE_KEY = 'kanji_v3';
+
+function todayStr() { return new Date().toISOString().slice(0, 10); }
+
+function fresh() {
+  return {
+    level: 4, today: todayStr(),
+    sets: [{done:false,correct:0,total:0},{done:false,correct:0,total:0},{done:false,correct:0,total:0}],
+    reviewList: {}, history: {}, kanjiStats: {},
+    streak: 0, lastStudy: null,
+    totalAns: 0, totalRight: 0
+  };
+}
+
+let S = (() => {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (!raw) return fresh();
+    const s = JSON.parse(raw);
+    if (s.today !== todayStr()) {
+      const prev = s.today;
+      s.today = todayStr();
+      s.sets = [{done:false,correct:0,total:0},{done:false,correct:0,total:0},{done:false,correct:0,total:0}];
+      const yd = new Date(); yd.setDate(yd.getDate()-1);
+      s.streak = (prev === yd.toISOString().slice(0,10)) ? (s.streak||0)+1 : 1;
+    }
+    return s;
+  } catch { return fresh(); }
+})();
+
+function save() { localStorage.setItem(STORE_KEY, JSON.stringify(S)); }
+
+// ══════════════════════════════════════════════════════════════
+//  CANVAS CONTROLLER
+// ══════════════════════════════════════════════════════════════
+class DrawCanvas {
+  constructor(el) {
+    this.el = el;
+    this.strokes = [];
+    this.cur = null;
+    this.drawing = false;
+    this.frozen = false;
+    this._init();
+  }
+
+  _init() {
+    const dpr = window.devicePixelRatio || 1;
+    const size = this.el.offsetWidth;
+    this.size = size;
+    this.dpr = dpr;
+    this.el.width = size * dpr;
+    this.el.height = size * dpr;
+    this.ctx = this.el.getContext('2d');
+    this.ctx.scale(dpr, dpr);
+    this.ctx.lineCap = 'round';
+    this.ctx.lineJoin = 'round';
+
+    const on = (ev, fn) => this.el.addEventListener(ev, fn, { passive: false });
+    on('touchstart', e => { e.preventDefault(); if (!this.frozen) this._start(this._pos(e)); });
+    on('touchmove',  e => { e.preventDefault(); if (!this.frozen) this._move(this._pos(e)); });
+    on('touchend',   e => { e.preventDefault(); this._end(); });
+    on('mousedown',  e => { if (!this.frozen) this._start(this._pos(e)); });
+    on('mousemove',  e => { if (this.drawing && !this.frozen) this._move(this._pos(e)); });
+    on('mouseup',    () => this._end());
+
+    this.redraw();
+  }
+
+  _pos(e) {
+    const r = this.el.getBoundingClientRect();
+    const t = e.touches ? e.touches[0] : e;
+    return { x: t.clientX - r.left, y: t.clientY - r.top };
+  }
+
+  _start(p) { this.drawing = true; this.cur = [p]; }
+
+  _move(p) {
+    if (!this.drawing) return;
+    this.cur.push(p);
+    this.redraw();
+  }
+
+  _end() {
+    if (!this.drawing) return;
+    this.drawing = false;
+    if (this.cur && this.cur.length) this.strokes.push(this.cur);
+    this.cur = null;
+  }
+
+  clear() { this.strokes = []; this.cur = null; this.drawing = false; this.frozen = false; this.redraw(); }
+  freeze() { this.frozen = true; }
+  isEmpty() { return this.strokes.length === 0; }
+
+  snapshot() {
+    // Return a small canvas (thumbnail) for display in reveal panel
+    const tmp = document.createElement('canvas');
+    const sz = 80;
+    tmp.width = sz; tmp.height = sz;
+    const tctx = tmp.getContext('2d');
+    const scale = sz / this.size;
+    tctx.scale(scale, scale);
+    this._renderTo(tctx, this.size);
+    return tmp;
+  }
+
+  redraw() { this._renderTo(this.ctx, this.size); }
+
+  _renderTo(ctx, size) {
+    ctx.clearRect(0, 0, size, size);
+
+    // Background
+    ctx.fillStyle = '#fffef6';
+    ctx.fillRect(0, 0, size, size);
+
+    // Grid lines
+    ctx.strokeStyle = '#dce3f0';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(size/2, 4); ctx.lineTo(size/2, size-4);
+    ctx.moveTo(4, size/2); ctx.lineTo(size-4, size/2);
+    ctx.stroke();
+
+    // Diagonal guides
+    ctx.strokeStyle = '#eef0f8';
+    ctx.setLineDash([4, 6]);
+    ctx.beginPath();
+    ctx.moveTo(6, 6); ctx.lineTo(size-6, size-6);
+    ctx.moveTo(size-6, 6); ctx.lineTo(6, size-6);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Border
+    ctx.strokeStyle = '#c8d0e0';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(2, 2, size-4, size-4);
+
+    // Strokes
+    ctx.strokeStyle = '#1a1a2e';
+    ctx.lineWidth = Math.max(size / 64, 4);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    const all = this.cur ? [...this.strokes, this.cur] : this.strokes;
+    for (const pts of all) this._drawStroke(ctx, pts);
+  }
+
+  _drawStroke(ctx, pts) {
+    if (!pts || pts.length === 0) return;
+    ctx.beginPath();
+    if (pts.length === 1) {
+      ctx.arc(pts[0].x, pts[0].y, ctx.lineWidth/2, 0, Math.PI*2);
+      ctx.fillStyle = ctx.strokeStyle;
+      ctx.fill();
+      return;
+    }
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length - 1; i++) {
+      const mx = (pts[i].x + pts[i+1].x) / 2;
+      const my = (pts[i].y + pts[i+1].y) / 2;
+      ctx.quadraticCurveTo(pts[i].x, pts[i].y, mx, my);
+    }
+    ctx.lineTo(pts[pts.length-1].x, pts[pts.length-1].y);
+    ctx.stroke();
+  }
+}
+
+let dc = null; // active DrawCanvas
+
+// ══════════════════════════════════════════════════════════════
+//  QUIZ ENGINE
+// ══════════════════════════════════════════════════════════════
+let Q = { qs:[], idx:0, wrong:[], exam:false, setIdx:0, timer:null, timeLeft:0 };
+
+function allWords(lvl) {
+  const out = [];
+  for (let l = 4; l <= lvl; l++) {
+    for (const item of (KANJI_DB[l]||[])) {
+      for (const w of item.words) out.push({...w, kanji:item.kanji, level:l});
+    }
+  }
+  return out;
+}
+
+function shuffle(a) {
+  const b = [...a];
+  for (let i = b.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [b[i],b[j]] = [b[j],b[i]];
+  }
+  return b;
+}
+
+let _typePool = [];
+function pickType() {
+  if (!_typePool.length) _typePool = shuffle(['yomi','yomi','kaki','kaki','yomi','kaki','yomi','kaki']);
+  return _typePool.pop();
+}
+
+function buildQs(n=5) {
+  const today = todayStr();
+  const av = allWords(S.level);
+  const reviewKeys = Object.keys(S.reviewList).filter(k => {
+    const r = S.reviewList[k]; return r.nextReview <= today && r.consecutive < 3;
+  });
+  const qs = [];
+  const used = new Set();
+  const revN = Math.min(Math.floor(n*0.4), reviewKeys.length);
+  for (const k of shuffle(reviewKeys).slice(0, revN)) {
+    const found = av.find(w => w.w === k);
+    if (found) { qs.push(makeQ(found, true)); used.add(k); }
+  }
+  for (const w of shuffle(av).filter(w => !used.has(w.w)).slice(0, n-qs.length)) {
+    qs.push(makeQ(w, false));
+  }
+  return shuffle(qs);
+}
+
+function makeQ(wo, isReview) {
+  const type = pickType();
+  return type === 'yomi'
+    ? { type:'yomi', isReview, display:wo.w, answer:wo.r, hint:wo.m, wo }
+    : { type:'kaki', isReview, display:wo.r, hint:wo.m, answer:wo.w, wo };
+}
+
+function nextSet() { return S.sets.findIndex(s => !s.done); }
+
+function startQuiz(exam) {
+  const si = nextSet();
+  if (si === -1) { renderHome(); return; }
+  Q.qs = buildQs(5); Q.idx = 0; Q.wrong = [];
+  Q.exam = exam; Q.setIdx = si;
+  if (exam) { Q.timeLeft = 5*60; startTimer(); }
+  showScreen('quiz');
+  renderQ();
+}
+
+function startTimer() {
+  if (Q.timer) clearInterval(Q.timer);
+  Q.timer = setInterval(() => {
+    Q.timeLeft--;
+    const el = document.getElementById('q-timer');
+    if (el) {
+      const m = Math.floor(Q.timeLeft/60), s = Q.timeLeft%60;
+      el.textContent = `${m}:${s.toString().padStart(2,'0')}`;
+      el.className = 'q-timer' + (Q.timeLeft <= 30 ? ' warn' : '');
+    }
+    if (Q.timeLeft <= 0) { clearInterval(Q.timer); Q.timer = null; timeUp(); }
+  }, 1000);
+}
+
+function timeUp() {
+  const q = Q.qs[Q.idx];
+  if (!q) return;
+  if (q.type === 'kaki') { assess(false); }
+  else { doSubmitYomi(true); }
+}
+
+// ── render question ──────────────────────────────────────────
+function renderQ() {
+  const wrap = document.getElementById('quiz-wrap');
+  const q = Q.qs[Q.idx];
+  const total = Q.qs.length;
+  const pct = Math.round((Q.idx / total) * 100);
+
+  const timerHTML = Q.exam
+    ? `<div class="q-timer" id="q-timer">5:00</div>`
+    : `<div></div>`;
+
+  const badgesHTML = `
+    <div class="q-badges">
+      <span class="badge ${q.type==='yomi'?'badge-yomi':'badge-kaki'}">${q.type==='yomi'?'読み':'書き'}</span>
+      ${q.isReview ? '<span class="badge badge-review">復習</span>' : ''}
+    </div>`;
+
+  if (q.type === 'yomi') {
+    wrap.innerHTML = `
+      <div class="quiz-top">
+        <div class="q-progress">${Q.idx+1} / ${total}</div>
+        ${timerHTML}
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      ${badgesHTML}
+      <div class="q-card">
+        <div class="q-main">${q.display}</div>
+        <div class="q-hint">読み方をひらがなで答えなさい</div>
+      </div>
+      <div class="yomi-input-wrap">
+        <input id="q-input" class="q-input" type="text" placeholder="ひらがなで入力"
+          autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+          oninput="autoSubmitYomi()" onkeydown="if(event.key==='Enter') submitYomi()">
+      </div>
+      <button class="btn-next" id="btn-submit" onclick="submitYomi()">答え合わせ</button>
+    `;
+    setTimeout(() => { const inp = document.getElementById('q-input'); if(inp) inp.focus(); }, 100);
+
+  } else {
+    // kaki: canvas drawing
+    const cSize = Math.min(window.innerWidth - 64, 300);
+    wrap.innerHTML = `
+      <div class="quiz-top">
+        <div class="q-progress">${Q.idx+1} / ${total}</div>
+        ${timerHTML}
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      ${badgesHTML}
+      <div class="q-card">
+        <div class="q-sub">「${q.display}」</div>
+        <div class="q-hint" style="font-size:15px;margin-top:4px;">（${q.hint}）</div>
+        <div class="q-hint" style="margin-top:8px;">漢字をマス目に書きなさい</div>
+      </div>
+      <div class="canvas-wrap">
+        <canvas id="drawing-canvas" width="${cSize}" height="${cSize}" style="width:${cSize}px;height:${cSize}px;"></canvas>
+        <div class="canvas-controls">
+          <button class="btn-canvas-clear" onclick="clearCanvas()">消す</button>
+          <button class="btn-canvas-done" onclick="revealAnswer()">書けた →</button>
+        </div>
+      </div>
+    `;
+    const canvas = document.getElementById('drawing-canvas');
+    dc = new DrawCanvas(canvas);
+  }
+}
+
+function clearCanvas() { if (dc) dc.clear(); }
+
+function autoSubmitYomi() {
+  // No auto-submit; user taps button or Enter
+}
+
+function norm(s) {
+  return (s||'').trim().replace(/\s+/g,'')
+    .replace(/[Ａ-Ｚａ-ｚ０-９]/g, c => String.fromCharCode(c.charCodeAt(0)-0xFEE0))
+    .toLowerCase();
+}
+
+function submitYomi(timeupVal) {
+  const q = Q.qs[Q.idx];
+  const inp = document.getElementById('q-input');
+  const userAns = timeupVal ? '' : norm(inp ? inp.value : '');
+  const correct = norm(q.answer);
+  const ok = userAns === correct;
+
+  // Disable input
+  if (inp) { inp.disabled = true; inp.className = 'q-input ' + (ok ? 'correct' : 'wrong'); }
+
+  recordResult(q, ok);
+  renderFeedback(q, ok, userAns);
+}
+
+function doSubmitYomi(timeup) { submitYomi(timeup); }
+
+function revealAnswer() {
+  const q = Q.qs[Q.idx];
+  if (!dc) return;
+  dc.freeze();
+
+  // Snapshot user drawing
+  const snap = dc.snapshot();
+
+  const wrap = document.getElementById('quiz-wrap');
+  const total = Q.qs.length;
+  const pct = Math.round((Q.idx / total) * 100);
+  const timerHTML = Q.exam
+    ? `<div class="q-timer ${Q.timeLeft<=30?'warn':''}" id="q-timer">${Math.floor(Q.timeLeft/60)}:${(Q.timeLeft%60).toString().padStart(2,'0')}</div>`
+    : `<div></div>`;
+
+  wrap.innerHTML = `
+    <div class="quiz-top">
+      <div class="q-progress">${Q.idx+1} / ${total}</div>
+      ${timerHTML}
+    </div>
+    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+    <div class="q-card" style="margin-bottom:16px;">
+      <div class="q-sub">「${q.display}」（${q.hint}）</div>
+    </div>
+    <div class="reveal-wrap">
+      <div class="reveal-split">
+        <div class="reveal-panel">
+          <label>あなたの答え</label>
+          <div class="reveal-canvas-box" id="snap-box"></div>
+        </div>
+        <div class="reveal-panel">
+          <label>正解</label>
+          <div class="reveal-kanji-box">${q.answer}</div>
+        </div>
+      </div>
+      <div style="font-size:14px;text-align:center;color:var(--gray);margin-bottom:14px;">合っていましたか？</div>
+      <div class="assess-row">
+        <button class="btn-assess btn-wrong-ans" onclick="assess(false)">✗ 不正解</button>
+        <button class="btn-assess btn-correct" onclick="assess(true)">○ 正解</button>
+      </div>
+    </div>
+  `;
+
+  // Put snapshot into box
+  const box = document.getElementById('snap-box');
+  if (box && snap) box.appendChild(snap);
+}
+
+function assess(ok) {
+  const q = Q.qs[Q.idx];
+  recordResult(q, ok);
+
+  const wrap = document.getElementById('quiz-wrap');
+  const total = Q.qs.length;
+  const pct = Math.round((Q.idx / total) * 100);
+  const timerHTML = Q.exam
+    ? `<div class="q-timer ${Q.timeLeft<=30?'warn':''}" id="q-timer">${Math.floor(Q.timeLeft/60)}:${(Q.timeLeft%60).toString().padStart(2,'0')}</div>`
+    : `<div></div>`;
+
+  const fbClass = ok ? 'correct' : 'wrong';
+  const fbMsg = ok
+    ? `<span class="feedback-ans">正解！${q.answer}</span>`
+    : `<span class="feedback-ans">正解：${q.answer}</span><span class="feedback-detail">${q.wo.r}（${q.wo.m}）</span>`;
+
+  wrap.innerHTML = `
+    <div class="quiz-top">
+      <div class="q-progress">${Q.idx+1} / ${total}</div>
+      ${timerHTML}
+    </div>
+    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+    <div class="q-card" style="margin-bottom:16px;">
+      <div class="q-sub">「${q.display}」（${q.hint}）</div>
+    </div>
+    <div class="feedback-box ${fbClass}">${fbMsg}</div>
+    <button class="btn-next" onclick="nextQ()">次へ →</button>
+  `;
+}
+
+function renderFeedback(q, ok, userAns) {
+  const wrap = document.getElementById('quiz-wrap');
+  const total = Q.qs.length;
+  const pct = Math.round((Q.idx / total) * 100);
+  const timerHTML = Q.exam
+    ? `<div class="q-timer ${Q.timeLeft<=30?'warn':''}" id="q-timer">${Math.floor(Q.timeLeft/60)}:${(Q.timeLeft%60).toString().padStart(2,'0')}</div>`
+    : `<div></div>`;
+
+  const fbClass = ok ? 'correct' : 'wrong';
+  const fbMsg = ok
+    ? `<span class="feedback-ans">正解！</span>`
+    : `<span class="feedback-ans">正解：${q.answer}</span><span class="feedback-detail">あなたの答え：${userAns||'（未入力）'}</span>`;
+
+  wrap.innerHTML = `
+    <div class="quiz-top">
+      <div class="q-progress">${Q.idx+1} / ${total}</div>
+      ${timerHTML}
+    </div>
+    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+    <div class="q-card" style="margin-bottom:16px;">
+      <div class="q-main">${q.display}</div>
+    </div>
+    <div class="feedback-box ${fbClass}">${fbMsg}</div>
+    <button class="btn-next" onclick="nextQ()">次へ →</button>
+  `;
+}
+
+function recordResult(q, ok) {
+  const wk = q.wo.w;
+  if (!S.kanjiStats[wk]) S.kanjiStats[wk] = {correct:0,total:0};
+  S.kanjiStats[wk].total++;
+  S.totalAns++;
+
+  if (ok) {
+    S.kanjiStats[wk].correct++;
+    S.totalRight++;
+    if (S.reviewList[wk]) {
+      S.reviewList[wk].consecutive++;
+      if (S.reviewList[wk].consecutive >= 3) delete S.reviewList[wk];
+    }
+  } else {
+    Q.wrong.push(q);
+    const nxt = new Date(); nxt.setDate(nxt.getDate()+1);
+    if (!S.reviewList[wk]) {
+      S.reviewList[wk] = { consecutive:0, nextReview: nxt.toISOString().slice(0,10) };
+    } else {
+      S.reviewList[wk].consecutive = 0;
+      S.reviewList[wk].nextReview = nxt.toISOString().slice(0,10);
+    }
+  }
+  save();
+}
+
+function nextQ() {
+  Q.idx++;
+  if (Q.idx >= Q.qs.length) { finishQuiz(); return; }
+  renderQ();
+  document.getElementById('scroll-area').scrollTop = 0;
+}
+
+function finishQuiz() {
+  if (Q.timer) { clearInterval(Q.timer); Q.timer = null; }
+  const total = Q.qs.length;
+  const wrong = Q.wrong.length;
+  const correct = total - wrong;
+
+  S.sets[Q.setIdx] = { done:true, correct, total };
+
+  const td = todayStr();
+  if (!S.history[td]) S.history[td] = {correct:0,total:0};
+  S.history[td].correct += correct;
+  S.history[td].total += total;
+
+  const allDone = S.sets.every(s=>s.done);
+  const h = S.history[td];
+  let levelUp = false;
+  if (allDone && h.total > 0 && h.correct/h.total >= 0.8 && S.level < 6) {
+    S.level++;
+    levelUp = true;
+  }
+  save();
+
+  renderResult(correct, total, wrong, levelUp);
+  if (levelUp) setTimeout(() => showLevelUp(S.level), 600);
+}
+
+function renderResult(correct, total, wrong, levelUp) {
+  const wrap = document.getElementById('quiz-wrap');
+  const pct = Math.round(correct/total*100);
+  const cls = pct===100?'perfect':pct>=60?'good':'poor';
+  const msg = pct===100?'満点！':pct>=80?'合格ライン':pct>=60?'もう少し！':'要復習';
+
+  const wrongRows = Q.wrong.map(q => `
+    <div class="wrong-row">
+      <div class="wrong-kanji">${q.wo.kanji}</div>
+      <div class="wrong-info">
+        <div class="wrong-word">${q.wo.w}</div>
+        <div class="wrong-reading">${q.wo.r}（${q.wo.m}）</div>
+      </div>
+      <div class="wrong-tag">→ 明日も出題</div>
+    </div>
+  `).join('');
+
+  const nextBtnHTML = nextSet() !== -1
+    ? `<button class="btn-secondary mt8" style="color:var(--blue);border-color:var(--blue);" onclick="resetQuizView();startQuiz(false)">次のセットへ →</button>`
+    : '';
+
+  wrap.innerHTML = `
+    <div class="result-card">
+      <div class="result-score ${cls}">${correct}/${total}</div>
+      <div class="result-msg">${msg}（${pct}%）</div>
+    </div>
+    ${wrong > 0 ? `<div class="wrong-heading">間違えた問題（${wrong}問）</div>${wrongRows}` : ''}
+    <button class="btn-primary mt16" onclick="resetQuizView();showScreen('home')">ホームへ</button>
+    ${nextBtnHTML}
+  `;
+}
+
+function resetQuizView() {
+  document.getElementById('quiz-wrap').innerHTML = '';
+  dc = null;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  LEVEL UP MODAL
+// ══════════════════════════════════════════════════════════════
+function showLevelUp(lvl) {
+  document.getElementById('modal-title').textContent = `小${lvl}レベルへ！`;
+  document.getElementById('modal-sub').textContent = `正答率80%達成 → 小${lvl-1}を卒業`;
+  document.getElementById('modal-levelup').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('modal-levelup').classList.remove('show');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  SCREENS
+// ══════════════════════════════════════════════════════════════
+function showScreen(name) {
+  ['home','quiz','stats','review'].forEach(id => {
+    document.getElementById('screen-'+id).classList.toggle('active', id===name);
+    const nav = document.getElementById('nav-'+id);
+    if (nav) nav.classList.toggle('active', id===name);
+  });
+
+  document.getElementById('top-title').textContent =
+    name==='home'?'漢字得点力':
+    name==='quiz'?'問題':
+    name==='stats'?'成績・分析':
+    '復習リスト';
+
+  document.getElementById('scroll-area').scrollTop = 0;
+
+  if (name==='home') renderHome();
+  if (name==='stats') renderStats();
+  if (name==='review') renderReview();
+}
+
+// ──  HOME  ─────────────────────────────────────────────────
+function renderHome() {
+  // Level chip
+  document.getElementById('level-chip').textContent = `小${S.level}`;
+
+  // Set tiles
+  const row = document.getElementById('sets-row');
+  row.innerHTML = S.sets.map((s,i) => {
+    const isDone = s.done;
+    const isNext = !isDone && S.sets.slice(0,i).every(x=>x.done);
+    return `
+      <div class="set-tile ${isDone?'done':''} ${isNext?'next':''}">
+        <div class="set-num">セット ${i+1}</div>
+        <div class="set-icon">${isDone?'✓':isNext?'▶':'○'}</div>
+        <div class="set-val ${isDone?'done':''}">${isDone?`${s.correct}/${s.total}`:'—'}</div>
+      </div>
+    `;
+  }).join('');
+
+  // Review alert
+  const today = todayStr();
+  const revCnt = Object.values(S.reviewList).filter(v => v.nextReview<=today && v.consecutive<3).length;
+  const alertEl = document.getElementById('review-alert');
+  if (revCnt > 0) {
+    alertEl.classList.remove('hidden');
+    document.getElementById('review-count').textContent = revCnt;
+  } else {
+    alertEl.classList.add('hidden');
+  }
+
+  // Mini stats
+  const h = S.history[today];
+  document.getElementById('h-today').textContent = h && h.total>0 ? Math.round(h.correct/h.total*100)+'%' : '—';
+  document.getElementById('h-streak').textContent = S.streak || 0;
+  document.getElementById('h-total').textContent = S.totalAns || 0;
+
+  // Start button
+  const allDone = S.sets.every(s=>s.done);
+  const btn = document.getElementById('btn-go');
+  btn.disabled = allDone;
+  btn.textContent = allDone ? '今日の学習完了！' : '学習スタート';
+}
+
+// ──  STATS  ────────────────────────────────────────────────
+function renderStats() {
+  const days = [];
+  for (let i=6; i>=0; i--) {
+    const d = new Date(); d.setDate(d.getDate()-i);
+    days.push(d.toISOString().slice(0,10));
+  }
+
+  const dn = ['日','月','火','水','木','金','土'];
+  document.getElementById('week-chart').innerHTML = days.map(dt => {
+    const h = S.history[dt];
+    const pct = h && h.total>0 ? h.correct/h.total : 0;
+    const d = new Date(dt+'T12:00:00');
+    const hi = pct >= 0.8;
+    return `
+      <div class="bar-wrap">
+        <div class="bar-fill${hi?' high':''}" style="height:${Math.max(pct*76,pct>0?3:0)}px;"></div>
+        <div class="bar-day">${dn[d.getDay()]}</div>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('s-total').textContent = S.totalAns || 0;
+  document.getElementById('s-pct').textContent = S.totalAns>0 ? Math.round(S.totalRight/S.totalAns*100)+'%' : '—';
+  document.getElementById('s-level').textContent = `小${S.level}`;
+
+  const av = allWords(S.level);
+  const weak = Object.entries(S.kanjiStats)
+    .filter(([,v]) => v.total >= 2)
+    .map(([w,v]) => ({w, pct:v.correct/v.total, v}))
+    .sort((a,b) => a.pct-b.pct)
+    .slice(0,10);
+
+  const wl = document.getElementById('weak-list');
+  if (!weak.length) {
+    wl.innerHTML = '<div class="empty"><div class="empty-icon">📊</div><div class="empty-msg">問題を解くと苦手リストが表示されます</div></div>';
+    return;
+  }
+
+  wl.innerHTML = weak.map(({w,pct,v}) => {
+    const found = av.find(x => x.w === w);
+    const p = Math.round(pct*100);
+    return `
+      <div class="weak-item">
+        <div class="weak-kanji">${found?found.kanji:w[0]}</div>
+        <div class="weak-info">
+          <div class="weak-word">${w}</div>
+          <div class="weak-reading">${found?found.r:''}</div>
+        </div>
+        <div class="weak-pct-wrap">
+          <div class="weak-pct-num">${p}%</div>
+          <div class="weak-bar-bg"><div class="weak-bar-fill" style="width:${p}%"></div></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ──  REVIEW  ───────────────────────────────────────────────
+function renderReview() {
+  const av = allWords(S.level);
+  const items = Object.entries(S.reviewList).filter(([,v]) => v.consecutive<3);
+
+  const cont = document.getElementById('review-grid');
+  if (!items.length) {
+    cont.innerHTML = '<div class="empty"><div class="empty-icon">🌟</div><div class="empty-msg">復習リストは空です</div></div>';
+    return;
+  }
+
+  cont.innerHTML = '<div class="review-grid">' +
+    items.map(([w, data]) => {
+      const found = av.find(x => x.w === w);
+      const cons = data.consecutive || 0;
+      const dots = [0,1,2].map(i => `<div class="dot${i<cons?' on':''}"></div>`).join('');
+      return `
+        <div class="review-tile">
+          <div class="rt-kanji">${w}</div>
+          <div class="rt-reading">${found?found.r:''}</div>
+          <div class="rt-dots">${dots}</div>
+        </div>
+      `;
+    }).join('') +
+  '</div>';
+}
+
+// ══════════════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════════════
+renderHome();
+showScreen('home');
+
+// ── Service Worker 登録 ─────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .catch(err => console.warn('SW:', err));
+  });
+}
+</script>
+</body>
+</html>
