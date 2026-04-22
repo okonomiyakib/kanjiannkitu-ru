@@ -1,9 +1,10 @@
-const CACHE = 'kanji-v2';
+const CACHE = 'kanji-v4';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './icons/icon.svg'
+  './icons/icon.svg',
+  './ritolun.jpg'
 ];
 
 // インストール：アセットをキャッシュ

@@ -619,6 +619,122 @@ body {
 .hidden { display: none !important; }
 .mt8 { margin-top: 8px; }
 .mt16 { margin-top: 16px; }
+
+/* ===== CHARACTER SECTION ===== */
+.char-section {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 16px 16px 0;
+}
+.char-img-wrap { flex-shrink: 0; text-align: center; }
+.char-avatar {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border: 2.5px solid var(--blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 34px;
+  overflow: hidden;
+}
+.char-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.char-phase-label { font-size: 10px; color: var(--gray); margin-top: 4px; font-weight: 600; }
+.char-bubble {
+  background: var(--light);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  border-bottom-left-radius: 4px;
+  padding: 11px 14px;
+  font-size: 13px;
+  line-height: 1.55;
+  flex: 1;
+  position: relative;
+  color: var(--text);
+  min-height: 48px;
+}
+.char-bubble::before {
+  content: '';
+  position: absolute;
+  left: -9px;
+  bottom: 14px;
+  border: 5px solid transparent;
+  border-right-color: var(--border);
+}
+.char-bubble::after {
+  content: '';
+  position: absolute;
+  left: -6.5px;
+  bottom: 15px;
+  border: 4px solid transparent;
+  border-right-color: var(--light);
+}
+
+/* ===== MISSION CARD ===== */
+.mission-card {
+  margin: 12px 16px 0;
+  background: linear-gradient(135deg, #1a73e8 0%, #1557b0 100%);
+  border-radius: 18px;
+  padding: 14px 16px;
+  color: #fff;
+}
+.mission-header { font-size: 10px; font-weight: 700; opacity: 0.75; letter-spacing: 0.6px; text-transform: uppercase; margin-bottom: 6px; }
+.mission-items { display: flex; gap: 8px; flex-wrap: wrap; }
+.mission-chip { background: rgba(255,255,255,0.18); border-radius: 20px; padding: 3px 10px; font-size: 12px; font-weight: 600; }
+
+/* ===== COMBO TOAST ===== */
+@keyframes comboAnim {
+  0%   { opacity:0; transform:translate(-50%,-50%) scale(0.6); }
+  25%  { opacity:1; transform:translate(-50%,-50%) scale(1.15); }
+  70%  { opacity:1; transform:translate(-50%,-50%) scale(1); }
+  100% { opacity:0; transform:translate(-50%,-50%) scale(0.85); }
+}
+.combo-toast {
+  position: fixed;
+  top: 45%;
+  left: 50%;
+  background: var(--green);
+  color: #fff;
+  padding: 12px 28px;
+  border-radius: 50px;
+  font-size: 19px;
+  font-weight: 700;
+  z-index: 400;
+  animation: comboAnim 1.4s ease forwards;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* ===== NAME MODAL ===== */
+.name-modal-bg {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+}
+.name-modal-bg.hidden { display: none; }
+.name-modal { background: #fff; border-radius: 24px; padding: 32px 24px 28px; max-width: 310px; width: 90%; text-align: center; }
+.name-modal-char { font-size: 56px; margin-bottom: 6px; }
+.name-modal h2 { font-size: 19px; font-weight: 700; margin-bottom: 6px; }
+.name-modal p { font-size: 13px; color: var(--gray); margin-bottom: 18px; line-height: 1.55; }
+.name-input {
+  width: 100%;
+  padding: 13px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  font-size: 20px;
+  text-align: center;
+  outline: none;
+  margin-bottom: 14px;
+  font-family: inherit;
+  -webkit-appearance: none;
+}
+.name-input:focus { border-color: var(--blue); }
 </style>
 </head>
 <body>
@@ -634,6 +750,19 @@ body {
 
   <!-- HOME SCREEN -->
   <div class="screen active" id="screen-home">
+    <!-- CHARACTER -->
+    <div class="char-section">
+      <div class="char-img-wrap">
+        <div class="char-avatar" id="char-avatar"><img src="ritolun.jpg" alt="りとるん"></div>
+        <div class="char-phase-label" id="char-phase-label">りとるん</div>
+      </div>
+      <div class="char-bubble" id="char-bubble">今日も漢字やろ。</div>
+    </div>
+    <!-- MISSION CARD -->
+    <div class="mission-card hidden" id="mission-card">
+      <div class="mission-header">今日のミッション</div>
+      <div class="mission-items" id="mission-items"></div>
+    </div>
     <div class="home-wrap">
       <div class="today-label">今日の進捗</div>
       <div class="sets-row" id="sets-row"></div>
@@ -716,6 +845,19 @@ body {
     <div class="nav-label">復習リスト</div>
   </div>
 </nav>
+
+<!-- NAME INPUT MODAL -->
+<div class="name-modal-bg hidden" id="modal-name">
+  <div class="name-modal">
+    <div class="name-modal-char"><img src="ritolun.jpg" alt="りとるん" style="width:80px;height:80px;object-fit:cover;border-radius:50%;border:2px solid var(--blue);"></div>
+    <h2>はじめまして。わたし、りとるん。</h2>
+    <p>私はりとるん。<br>あなたの名前を教えて。一緒に漢字、やってみよう。</p>
+    <input id="name-input" class="name-input" type="text" placeholder="なまえ" maxlength="10"
+      autocomplete="off" autocorrect="off" spellcheck="false"
+      onkeydown="if(event.key==='Enter') saveName()">
+    <button class="modal-btn" style="width:100%;" onclick="saveName()">決定</button>
+  </div>
+</div>
 
 <!-- LEVEL UP MODAL -->
 <div class="modal-bg" id="modal-levelup">
@@ -976,9 +1118,21 @@ const KANJI_DB = {
 // ══════════════════════════════════════════════════════════════
 //  STATE
 // ══════════════════════════════════════════════════════════════
-const STORE_KEY = 'kanji_v3';
+const STORE_KEY = 'kanji_v4';
 
 function todayStr() { return new Date().toISOString().slice(0, 10); }
+
+function daysFromNow(n) {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
+function daysBetween(laterStr, earlierStr) {
+  const a = new Date(laterStr + 'T12:00:00');
+  const b = new Date(earlierStr + 'T12:00:00');
+  return Math.round((a - b) / 86400000);
+}
 
 function fresh() {
   return {
@@ -986,27 +1140,157 @@ function fresh() {
     sets: [{done:false,correct:0,total:0},{done:false,correct:0,total:0},{done:false,correct:0,total:0}],
     reviewList: {}, history: {}, kanjiStats: {},
     streak: 0, lastStudy: null,
-    totalAns: 0, totalRight: 0
+    totalAns: 0, totalRight: 0,
+    sessionHistory: [],
+    char: { name: null, bond: 0, phase: 'stranger', missedDays: 0, longestStreak: 0 }
   };
 }
 
 let S = (() => {
   try {
+    // Migrate from v3 if exists
+    const oldRaw = localStorage.getItem('kanji_v3');
     const raw = localStorage.getItem(STORE_KEY);
+    if (!raw && oldRaw) {
+      const old = JSON.parse(oldRaw);
+      const migrated = fresh();
+      migrated.level = old.level || 4;
+      migrated.history = old.history || {};
+      migrated.kanjiStats = old.kanjiStats || {};
+      migrated.totalAns = old.totalAns || 0;
+      migrated.totalRight = old.totalRight || 0;
+      migrated.streak = old.streak || 0;
+      // Migrate reviewList: convert consecutive → SM-2 fields
+      for (const [k, v] of Object.entries(old.reviewList || {})) {
+        migrated.reviewList[k] = {
+          ef: 2.5, reps: v.consecutive || 0, interval: 1,
+          wrongStreak: 0, nextReview: v.nextReview || daysFromNow(1)
+        };
+      }
+      return migrated;
+    }
     if (!raw) return fresh();
     const s = JSON.parse(raw);
+    // Ensure char state exists (for upgrades)
+    if (!s.char) s.char = { name: null, bond: 0, phase: 'stranger', missedDays: 0, longestStreak: 0 };
+    if (!s.sessionHistory) s.sessionHistory = [];
     if (s.today !== todayStr()) {
       const prev = s.today;
       s.today = todayStr();
       s.sets = [{done:false,correct:0,total:0},{done:false,correct:0,total:0},{done:false,correct:0,total:0}];
       const yd = new Date(); yd.setDate(yd.getDate()-1);
-      s.streak = (prev === yd.toISOString().slice(0,10)) ? (s.streak||0)+1 : 1;
+      const studied = (prev === yd.toISOString().slice(0,10));
+      if (studied) {
+        s.streak = (s.streak||0) + 1;
+        s.char.missedDays = 0;
+        if (s.streak > (s.char.longestStreak||0)) s.char.longestStreak = s.streak;
+      } else {
+        const missed = prev ? daysBetween(todayStr(), prev) - 1 : 0;
+        s.char.missedDays = Math.max(0, missed);
+        s.streak = 0;
+      }
     }
     return s;
   } catch { return fresh(); }
 })();
 
 function save() { localStorage.setItem(STORE_KEY, JSON.stringify(S)); }
+
+// ══════════════════════════════════════════════════════════════
+//  SM-2 SPACED REPETITION
+// ══════════════════════════════════════════════════════════════
+function sm2Update(record, isCorrect) {
+  const ef = record.ef || 2.5;
+  const reps = record.reps || 0;
+  const interval = record.interval || 1;
+
+  if (!isCorrect) {
+    return {
+      ef: Math.max(1.3, ef - 0.2),
+      reps: 0,
+      interval: 1,
+      wrongStreak: (record.wrongStreak || 0) + 1,
+      nextReview: daysFromNow(1)
+    };
+  }
+
+  const newReps = reps + 1;
+  let newInterval;
+  if (newReps === 1) newInterval = 1;
+  else if (newReps === 2) newInterval = 3;
+  else newInterval = Math.round(interval * ef);
+
+  return {
+    ef: Math.min(3.0, ef + 0.1),
+    reps: newReps,
+    interval: newInterval,
+    wrongStreak: 0,
+    nextReview: daysFromNow(newInterval)
+  };
+}
+
+function calcPriority(key, recentKeys) {
+  if (recentKeys.includes(key)) return -1; // 直近に出た問題はスキップ
+  const stats = S.kanjiStats[key];
+  if (!stats || stats.total === 0) return 1000; // 未学習を最優先
+  const rec = S.reviewList[key];
+  if (!rec) return 30; // 学習済みで復習不要
+  const today = todayStr();
+  const overdue = daysBetween(today, rec.nextReview); // 正=期限超過
+  if (overdue >= 0) return 500 + overdue * 10 + (rec.wrongStreak || 0) * 25;
+  if ((rec.wrongStreak || 0) >= 2) return 400;
+  return Math.max(5, 80 + overdue * 5); // overdueは負なので減算
+}
+
+// ══════════════════════════════════════════════════════════════
+//  CHARACTER SYSTEM
+// ══════════════════════════════════════════════════════════════
+function updateCharPhase() {
+  const bond = S.char.bond || 0;
+  if (bond >= 80) S.char.phase = 'bestFriend';
+  else if (bond >= 35) S.char.phase = 'friend';
+  else if (bond >= 12) S.char.phase = 'acquaintance';
+  else S.char.phase = 'stranger';
+}
+
+function getPhaseLabel() {
+  const phases = { stranger:'はじめまして', acquaintance:'なじんできた', friend:'なかよし', bestFriend:'ライバル' };
+  return phases[S.char.phase] || 'りとるん';
+}
+
+function getLoginDialogue() {
+  const name = S.char.name || 'きみ';
+  const missed = S.char.missedDays || 0;
+  const streak = S.streak || 0;
+  const phase = S.char.phase;
+
+  if (missed >= 7) return `…${name}？本当に${name}？よかった、生きてたんだね。`;
+  if (missed >= 3) return `${missed}日も来なかったね。…心配してたわけじゃないけど。`;
+  if (missed === 1) return `昨日来なかったね。まあ、今日来たからいっか。`;
+  if (streak === 30) return `1ヶ月連続…${name}って、意外とやるじゃん。`;
+  if (streak === 7)  return `7日連続！正直すごいと思ってる。`;
+  if (streak >= 3)   return `${streak}日連続だね。この調子！`;
+
+  const defaults = {
+    stranger:     'あ、来たんだ。今日も漢字やろ。',
+    acquaintance: `${name}、今日も来たね。`,
+    friend:       `おかえり！今日は全部倒そう！`,
+    bestFriend:   `待ってたよ！昨日の苦手、今日こそ倒そう！`,
+  };
+  return defaults[phase] || 'あ、来たんだ。今日も漢字やろ。';
+}
+
+function getResultDialogue(pct) {
+  const name = S.char.name || 'きみ';
+  const phase = S.char.phase;
+  if (pct === 100) {
+    if (phase === 'bestFriend') return `満点。…まあ当然だけど。よくやった。`;
+    return `満点！すごい、${name}！`;
+  }
+  if (pct >= 80) return `合格ライン超えたよ。この調子。`;
+  if (pct >= 60) return `あと少し。間違えたやつ、明日また出すからね。`;
+  return `うーん…一緒に見直そう。大丈夫、絶対できるようになる。`;
+}
 
 // ══════════════════════════════════════════════════════════════
 //  CANVAS CONTROLLER
@@ -1147,7 +1431,7 @@ let dc = null; // active DrawCanvas
 // ══════════════════════════════════════════════════════════════
 //  QUIZ ENGINE
 // ══════════════════════════════════════════════════════════════
-let Q = { qs:[], idx:0, wrong:[], exam:false, setIdx:0, timer:null, timeLeft:0 };
+let Q = { qs:[], idx:0, wrong:[], exam:false, setIdx:0, timer:null, timeLeft:0, combo:0 };
 
 function allWords(lvl) {
   const out = [];
@@ -1175,22 +1459,24 @@ function pickType() {
 }
 
 function buildQs(n=5) {
-  const today = todayStr();
   const av = allWords(S.level);
-  const reviewKeys = Object.keys(S.reviewList).filter(k => {
-    const r = S.reviewList[k]; return r.nextReview <= today && r.consecutive < 3;
-  });
-  const qs = [];
-  const used = new Set();
-  const revN = Math.min(Math.floor(n*0.4), reviewKeys.length);
-  for (const k of shuffle(reviewKeys).slice(0, revN)) {
-    const found = av.find(w => w.w === k);
-    if (found) { qs.push(makeQ(found, true)); used.add(k); }
-  }
-  for (const w of shuffle(av).filter(w => !used.has(w.w)).slice(0, n-qs.length)) {
-    qs.push(makeQ(w, false));
-  }
-  return shuffle(qs);
+  const recentKeys = (S.sessionHistory || []).slice(-5);
+
+  // Score all words
+  const scored = av.map(w => ({
+    w,
+    score: calcPriority(w.w, recentKeys)
+  })).filter(x => x.score >= 0);
+
+  // Sort by priority desc, then take top pool and shuffle for variety
+  scored.sort((a, b) => b.score - a.score);
+  const poolSize = Math.min(scored.length, Math.max(n * 4, 30));
+  // From top pool: always take the true top (score>400 = overdue/unknown), shuffle the rest
+  const mustInclude = scored.filter(x => x.score > 400).slice(0, Math.ceil(n * 0.5));
+  const rest = shuffle(scored.filter(x => x.score <= 400).slice(0, poolSize));
+  const pool = [...mustInclude, ...rest].slice(0, n);
+
+  return shuffle(pool.map(x => makeQ(x.w, !!S.reviewList[x.w.w])));
 }
 
 function makeQ(wo, isReview) {
@@ -1217,7 +1503,7 @@ function startQuiz(exam) {
   const si = nextSet();
   if (si === -1) { renderHome(); return; }
   Q.qs = buildQs(5); Q.idx = 0; Q.wrong = [];
-  Q.exam = exam; Q.setIdx = si;
+  Q.exam = exam; Q.setIdx = si; Q.combo = 0;
   if (exam) { Q.timeLeft = 5*60; startTimer(); }
   showScreen('quiz');
   renderQ();
@@ -1450,28 +1736,50 @@ function vibrate(pattern) {
 function recordResult(q, ok) {
   vibrate(ok ? [40] : [60, 40, 60]);
   const wk = q.wo.w;
-  if (!S.kanjiStats[wk]) S.kanjiStats[wk] = {correct:0,total:0};
+  if (!S.kanjiStats[wk]) S.kanjiStats[wk] = {correct:0, total:0};
   S.kanjiStats[wk].total++;
   S.totalAns++;
+
+  // Update session history (anti-repeat)
+  if (!S.sessionHistory) S.sessionHistory = [];
+  S.sessionHistory = [...S.sessionHistory.slice(-9), wk];
 
   if (ok) {
     S.kanjiStats[wk].correct++;
     S.totalRight++;
-    if (S.reviewList[wk]) {
-      S.reviewList[wk].consecutive++;
-      if (S.reviewList[wk].consecutive >= 3) delete S.reviewList[wk];
-    }
+    S.char.bond = Math.min(100, (S.char.bond || 0) + 1);
+    Q.combo = (Q.combo || 0) + 1;
+    // Combo celebration
+    if (Q.combo === 3) showComboToast('3連続正解！');
+    else if (Q.combo === 5) showComboToast('5連続！すごい！');
+    else if (Q.combo > 0 && Q.combo % 10 === 0) showComboToast(`${Q.combo}連続！！`);
   } else {
     Q.wrong.push(q);
-    const nxt = new Date(); nxt.setDate(nxt.getDate()+1);
-    if (!S.reviewList[wk]) {
-      S.reviewList[wk] = { consecutive:0, nextReview: nxt.toISOString().slice(0,10) };
-    } else {
-      S.reviewList[wk].consecutive = 0;
-      S.reviewList[wk].nextReview = nxt.toISOString().slice(0,10);
-    }
+    Q.combo = 0;
+    S.char.bond = Math.max(0, (S.char.bond || 0) - 0); // サボりペナなし（正解時のみ増加）
   }
+
+  // SM-2 update
+  const existing = S.reviewList[wk] || { ef: 2.5, reps: 0, interval: 1, wrongStreak: 0 };
+  const updated = sm2Update(existing, ok);
+
+  if (ok && updated.reps >= 3 && updated.interval >= 7) {
+    // 卒業: 十分に定着
+    delete S.reviewList[wk];
+  } else if (!ok || S.reviewList[wk]) {
+    S.reviewList[wk] = updated;
+  }
+
+  updateCharPhase();
   save();
+}
+
+function showComboToast(msg) {
+  const el = document.createElement('div');
+  el.className = 'combo-toast';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1500);
 }
 
 function nextQ() {
@@ -1513,6 +1821,8 @@ function renderResult(correct, total, wrong, levelUp) {
   const cls = pct===100?'perfect':pct>=60?'good':'poor';
   const msg = pct===100?'満点！':pct>=80?'合格ライン':pct>=60?'もう少し！':'要復習';
 
+  const charMsg = getResultDialogue(pct);
+
   const wrongRows = Q.wrong.map(q => `
     <div class="wrong-row">
       <div class="wrong-kanji">${q.wo.kanji}</div>
@@ -1520,7 +1830,7 @@ function renderResult(correct, total, wrong, levelUp) {
         <div class="wrong-word">${q.wo.w}</div>
         <div class="wrong-reading">${q.wo.r}（${q.wo.m}）</div>
       </div>
-      <div class="wrong-tag">→ 明日も出題</div>
+      <div class="wrong-tag">→ 次回出題</div>
     </div>
   `).join('');
 
@@ -1532,6 +1842,12 @@ function renderResult(correct, total, wrong, levelUp) {
     <div class="result-card">
       <div class="result-score ${cls}">${correct}/${total}</div>
       <div class="result-msg">${msg}（${pct}%）</div>
+    </div>
+    <div class="char-section" style="margin-bottom:16px;">
+      <div class="char-img-wrap">
+        <div class="char-avatar" style="width:52px;height:52px;"><img src="ritolun.jpg" alt="りとるん"></div>
+      </div>
+      <div class="char-bubble">${charMsg}</div>
     </div>
     ${wrong > 0 ? `<div class="wrong-heading">間違えた問題（${wrong}問）</div>${wrongRows}` : ''}
     <button class="btn-primary mt16" onclick="resetQuizView();showScreen('home')">ホームへ</button>
@@ -1585,6 +1901,32 @@ function renderHome() {
   // Level chip
   document.getElementById('level-chip').textContent = `小${S.level}`;
 
+  // Character
+  const bubble = document.getElementById('char-bubble');
+  const phaseLabel = document.getElementById('char-phase-label');
+  if (bubble) bubble.textContent = getLoginDialogue();
+  if (phaseLabel) phaseLabel.textContent = getPhaseLabel();
+
+  // Mission card
+  const today = todayStr();
+  const allDone = S.sets.every(s=>s.done);
+  const missionCard = document.getElementById('mission-card');
+  const missionItems = document.getElementById('mission-items');
+  if (!allDone && missionCard && missionItems) {
+    missionCard.classList.remove('hidden');
+    const newCount = Math.min(3, allWords(S.level).filter(w => !S.kanjiStats[w.w]).length);
+    const reviewCount = Object.values(S.reviewList).filter(v => v.nextReview <= today).length;
+    const wrongCount = Object.values(S.reviewList).filter(v => (v.wrongStreak||0) >= 1 && v.nextReview <= today).length;
+    missionItems.innerHTML = [
+      newCount > 0    ? `<span class="mission-chip">新規 ${Math.min(newCount,2)}問</span>` : '',
+      reviewCount > 0 ? `<span class="mission-chip">復習 ${Math.min(reviewCount,3)}問</span>` : '',
+      wrongCount > 0  ? `<span class="mission-chip">苦手 ${Math.min(wrongCount,2)}問</span>` : '',
+      `<span class="mission-chip">計 5問 × ${S.sets.filter(s=>!s.done).length}セット</span>`
+    ].join('');
+  } else if (missionCard) {
+    missionCard.classList.add('hidden');
+  }
+
   // Set tiles
   const row = document.getElementById('sets-row');
   row.innerHTML = S.sets.map((s,i) => {
@@ -1599,9 +1941,8 @@ function renderHome() {
     `;
   }).join('');
 
-  // Review alert
-  const today = todayStr();
-  const revCnt = Object.values(S.reviewList).filter(v => v.nextReview<=today && v.consecutive<3).length;
+  // Review alert (using SM-2 nextReview)
+  const revCnt = Object.values(S.reviewList).filter(v => v.nextReview <= today).length;
   const alertEl = document.getElementById('review-alert');
   if (revCnt > 0) {
     alertEl.classList.remove('hidden');
@@ -1617,7 +1958,6 @@ function renderHome() {
   document.getElementById('h-total').textContent = S.totalAns || 0;
 
   // Start button
-  const allDone = S.sets.every(s=>s.done);
   const btn = document.getElementById('btn-go');
   btn.disabled = allDone;
   btn.textContent = allDone ? '今日の学習完了！' : '学習スタート';
@@ -1684,7 +2024,8 @@ function renderStats() {
 // ──  REVIEW  ───────────────────────────────────────────────
 function renderReview() {
   const av = allWords(S.level);
-  const items = Object.entries(S.reviewList).filter(([,v]) => v.consecutive<3);
+  const today = todayStr();
+  const items = Object.entries(S.reviewList);
 
   const cont = document.getElementById('review-grid');
   if (!items.length) {
@@ -1692,16 +2033,28 @@ function renderReview() {
     return;
   }
 
+  // Sort: overdue first, then by nextReview
+  items.sort(([,a],[,b]) => {
+    const aOver = daysBetween(today, a.nextReview);
+    const bOver = daysBetween(today, b.nextReview);
+    return bOver - aOver;
+  });
+
   cont.innerHTML = '<div class="review-grid">' +
     items.map(([w, data]) => {
       const found = av.find(x => x.w === w);
-      const cons = data.consecutive || 0;
-      const dots = [0,1,2].map(i => `<div class="dot${i<cons?' on':''}"></div>`).join('');
+      const reps = data.reps || 0;
+      const overdue = daysBetween(today, data.nextReview);
+      const statusDot = overdue >= 0
+        ? `<span style="font-size:10px;color:var(--orange);">要復習</span>`
+        : `<span style="font-size:10px;color:var(--gray);">${data.interval}日後</span>`;
+      const dots = [0,1,2].map(i => `<div class="dot${i<reps?' on':''}"></div>`).join('');
       return `
         <div class="review-tile">
           <div class="rt-kanji">${w}</div>
           <div class="rt-reading">${found?found.r:''}</div>
           <div class="rt-dots">${dots}</div>
+          ${statusDot}
         </div>
       `;
     }).join('') +
@@ -1709,10 +2062,37 @@ function renderReview() {
 }
 
 // ══════════════════════════════════════════════════════════════
+//  NAME INPUT
+// ══════════════════════════════════════════════════════════════
+function saveName() {
+  const inp = document.getElementById('name-input');
+  const name = (inp ? inp.value : '').trim();
+  if (!name) { if (inp) inp.style.borderColor='var(--red)'; return; }
+  S.char.name = name;
+  save();
+  document.getElementById('modal-name').classList.add('hidden');
+  renderHome();
+  // りとるんの最初のセリフ
+  const bubble = document.getElementById('char-bubble');
+  if (bubble) {
+    bubble.textContent = `${name}か。じゃあ私はりとるん。覚えといて。一緒に漢字、やってみよう。`;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════════════════════════
 renderHome();
 showScreen('home');
+
+// 初回起動: 名前入力
+if (!S.char.name) {
+  document.getElementById('modal-name').classList.remove('hidden');
+  setTimeout(() => {
+    const inp = document.getElementById('name-input');
+    if (inp) inp.focus();
+  }, 300);
+}
 
 // ── Service Worker 登録 ─────────────────────────────────────
 if ('serviceWorker' in navigator) {
