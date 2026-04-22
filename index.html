@@ -735,6 +735,84 @@ body {
   -webkit-appearance: none;
 }
 .name-input:focus { border-color: var(--blue); }
+
+/* ===== PRACTICE SCREEN ===== */
+.practice-wrap { padding: 16px; }
+
+.practice-setup {
+  background: var(--light);
+  border-radius: 18px;
+  padding: 18px;
+  margin-bottom: 16px;
+}
+
+.setup-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gray);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.seg-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.seg-btn {
+  padding: 8px 14px;
+  border: 2px solid var(--border);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  background: #fff;
+  color: var(--text);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: all 0.15s;
+}
+
+.seg-btn.active {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+}
+
+.practice-counter {
+  text-align: center;
+  padding: 10px 0 2px;
+  font-size: 13px;
+  color: var(--gray);
+  font-weight: 600;
+}
+
+.btn-end-practice {
+  display: block;
+  width: 100%;
+  padding: 15px;
+  background: #fff;
+  color: var(--gray);
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 12px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.practice-result {
+  text-align: center;
+  padding: 28px 16px;
+}
+
+.pr-score { font-size: 60px; font-weight: 700; line-height: 1; }
+.pr-label { font-size: 15px; color: var(--gray); margin-top: 6px; margin-bottom: 20px; }
 </style>
 </head>
 <body>
@@ -828,6 +906,13 @@ body {
     </div>
   </div>
 
+  <!-- PRACTICE SCREEN -->
+  <div class="screen" id="screen-practice">
+    <div class="practice-wrap" id="practice-wrap">
+      <!-- 設定画面 or 問題 が動的に入る -->
+    </div>
+  </div>
+
 </div><!-- /scroll-area -->
 
 <!-- BOTTOM NAV -->
@@ -843,6 +928,10 @@ body {
   <div class="nav-item" id="nav-review" onclick="showScreen('review')">
     <div class="nav-icon">📋</div>
     <div class="nav-label">復習リスト</div>
+  </div>
+  <div class="nav-item" id="nav-practice" onclick="showScreen('practice')">
+    <div class="nav-icon">✏️</div>
+    <div class="nav-label">練習</div>
   </div>
 </nav>
 
@@ -1120,7 +1209,14 @@ const KANJI_DB = {
 // ══════════════════════════════════════════════════════════════
 const STORE_KEY = 'kanji_v4';
 
-function todayStr() { return new Date().toISOString().slice(0, 10); }
+function todayStr() {
+  const d = new Date();
+  // 端末のローカル時刻で日付を取得（00:00にリセット）
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
 
 function daysFromNow(n) {
   const d = new Date();
@@ -1877,23 +1973,25 @@ function closeModal() {
 //  SCREENS
 // ══════════════════════════════════════════════════════════════
 function showScreen(name) {
-  ['home','quiz','stats','review'].forEach(id => {
+  ['home','quiz','stats','review','practice'].forEach(id => {
     document.getElementById('screen-'+id).classList.toggle('active', id===name);
     const nav = document.getElementById('nav-'+id);
     if (nav) nav.classList.toggle('active', id===name);
   });
 
   document.getElementById('top-title').textContent =
-    name==='home'?'漢字得点力':
-    name==='quiz'?'問題':
-    name==='stats'?'成績・分析':
+    name==='home'     ? '漢字得点力' :
+    name==='quiz'     ? '問題' :
+    name==='stats'    ? '成績・分析' :
+    name==='practice' ? '練習モード' :
     '復習リスト';
 
   document.getElementById('scroll-area').scrollTop = 0;
 
-  if (name==='home') renderHome();
-  if (name==='stats') renderStats();
-  if (name==='review') renderReview();
+  if (name==='home')     renderHome();
+  if (name==='stats')    renderStats();
+  if (name==='review')   renderReview();
+  if (name==='practice') renderPracticeSetup();
 }
 
 // ──  HOME  ─────────────────────────────────────────────────
@@ -2059,6 +2157,262 @@ function renderReview() {
       `;
     }).join('') +
   '</div>';
+}
+
+// ══════════════════════════════════════════════════════════════
+//  PRACTICE MODE（練習モード・無制限）
+// ══════════════════════════════════════════════════════════════
+let P = { level: 0, type: 'both', running: false, correct: 0, total: 0, q: null };
+// level=0 → 現在のレベル以下全部
+
+function renderPracticeSetup() {
+  if (P.running) { renderPracticeQ(); return; }
+  const wrap = document.getElementById('practice-wrap');
+  wrap.innerHTML = `
+    <div class="char-section" style="margin-bottom:0;">
+      <div class="char-img-wrap">
+        <div class="char-avatar" style="width:52px;height:52px;"><img src="ritolun.jpg" alt="りとるん"></div>
+      </div>
+      <div class="char-bubble">何問でも付き合うよ。好きなだけ練習しよう！</div>
+    </div>
+    <div class="practice-setup" style="margin-top:14px;">
+      <div class="setup-title">学年を選ぶ</div>
+      <div class="seg-row" id="p-level-row">
+        <button class="seg-btn ${P.level===0?'active':''}" onclick="setPLevel(0)">全部</button>
+        <button class="seg-btn ${P.level===4?'active':''}" onclick="setPLevel(4)">小4</button>
+        <button class="seg-btn ${P.level===5?'active':''}" onclick="setPLevel(5)">小5</button>
+        <button class="seg-btn ${P.level===6?'active':''}" onclick="setPLevel(6)">小6</button>
+      </div>
+    </div>
+    <div class="practice-setup">
+      <div class="setup-title">問題の種類</div>
+      <div class="seg-row" id="p-type-row">
+        <button class="seg-btn ${P.type==='both'?'active':''}" onclick="setPType('both')">読み＋書き</button>
+        <button class="seg-btn ${P.type==='yomi'?'active':''}" onclick="setPType('yomi')">読みだけ</button>
+        <button class="seg-btn ${P.type==='kaki'?'active':''}" onclick="setPType('kaki')">書きだけ</button>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="startPractice()">練習スタート →</button>
+  `;
+}
+
+function setPLevel(lv) {
+  P.level = lv;
+  renderPracticeSetup();
+}
+
+function setPType(t) {
+  P.type = t;
+  renderPracticeSetup();
+}
+
+function startPractice() {
+  P.running = true;
+  P.correct = 0;
+  P.total = 0;
+  P.q = null;
+  renderPracticeQ();
+}
+
+function getPracticeWords() {
+  if (P.level === 0) return allWords(S.level);         // 全部=現在レベル以下
+  // 指定学年のみ
+  const out = [];
+  for (const item of (KANJI_DB[P.level] || [])) {
+    for (const w of item.words) out.push({ ...w, kanji: item.kanji, level: P.level });
+  }
+  return out;
+}
+
+function nextPracticeQ() {
+  const words = getPracticeWords();
+  // SM-2優先スコアで選ぶ（練習でも苦手を出しやすく）
+  const recentKeys = (S.sessionHistory || []).slice(-3);
+  const scored = words.map(w => ({ w, score: calcPriority(w.w, recentKeys) }))
+    .filter(x => x.score >= 0)
+    .sort((a, b) => b.score - a.score);
+  const topN = Math.min(scored.length, 20);
+  const picked = shuffle(scored.slice(0, topN))[0];
+  if (!picked) return null;
+  // 問題タイプ選択
+  let type = P.type;
+  if (type === 'both') type = Math.random() < 0.5 ? 'yomi' : 'kaki';
+  return type === 'yomi'
+    ? { type:'yomi', isReview:!!S.reviewList[picked.w.w], display:picked.w.w, answer:picked.w.r, hint:picked.w.m, wo:picked.w }
+    : { type:'kaki', isReview:!!S.reviewList[picked.w.w], display:picked.w.r, hint:picked.w.m, answer:picked.w.w, wo:picked.w };
+}
+
+function renderPracticeQ() {
+  const q = nextPracticeQ();
+  if (!q) { endPractice(); return; }
+  P.q = q;
+  const wrap = document.getElementById('practice-wrap');
+  const counter = `<div class="practice-counter">${P.total}問完了 ／ 正解 ${P.correct}問</div>`;
+
+  if (q.type === 'yomi') {
+    wrap.innerHTML = `
+      ${counter}
+      <div class="q-badges" style="padding:0 0 10px;">
+        <span class="badge badge-yomi">読み</span>
+        ${q.isReview ? '<span class="badge badge-review">復習</span>' : ''}
+      </div>
+      <div class="q-card">
+        <div class="q-main">${q.display}</div>
+        <div class="q-hint">読み方をひらがなで答えなさい</div>
+      </div>
+      <div class="yomi-input-wrap">
+        <input id="pq-input" class="q-input" type="text" placeholder="ひらがなで入力"
+          autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+          onkeydown="if(event.key==='Enter') submitPracticeYomi()">
+      </div>
+      <button class="btn-next" id="pq-submit" onclick="submitPracticeYomi()">答え合わせ</button>
+      <button class="btn-end-practice" onclick="endPractice()">練習を終わる</button>
+    `;
+    setTimeout(() => { const i = document.getElementById('pq-input'); if(i) i.focus(); }, 80);
+  } else {
+    const cSize = Math.min(window.innerWidth - 48, 300);
+    wrap.innerHTML = `
+      ${counter}
+      <div class="q-badges" style="padding:0 0 10px;">
+        <span class="badge badge-kaki">書き</span>
+        ${q.isReview ? '<span class="badge badge-review">復習</span>' : ''}
+      </div>
+      <div class="q-card">
+        <div class="q-reading-large">「${q.display}」</div>
+        <div class="q-hint" style="font-size:15px;margin-top:6px;">（${maskAnswerKanji(q.hint, q.answer)}）</div>
+        <div class="q-hint" style="margin-top:8px;">漢字をマス目に書きなさい</div>
+      </div>
+      <div class="canvas-wrap">
+        <canvas id="practice-canvas" width="${cSize}" height="${cSize}" style="width:${cSize}px;height:${cSize}px;"></canvas>
+        <div class="canvas-controls">
+          <button class="btn-canvas-clear" onclick="if(dc)dc.clear()">消す</button>
+          <button class="btn-canvas-done" onclick="revealPracticeAnswer()">書けた →</button>
+        </div>
+      </div>
+      <button class="btn-end-practice" onclick="endPractice()">練習を終わる</button>
+    `;
+    const canvas = document.getElementById('practice-canvas');
+    dc = new DrawCanvas(canvas);
+  }
+}
+
+function submitPracticeYomi() {
+  const q = P.q;
+  const inp = document.getElementById('pq-input');
+  const userAns = norm(inp ? inp.value : '');
+  const ok = userAns === norm(q.answer);
+  if (inp) { inp.disabled = true; inp.className = 'q-input ' + (ok?'correct':'wrong'); }
+  recordPracticeResult(q, ok, userAns);
+}
+
+function revealPracticeAnswer() {
+  const q = P.q;
+  if (!dc) return;
+  dc.freeze();
+  const snap = dc.snapshot();
+  const wrap = document.getElementById('practice-wrap');
+  const counter = `<div class="practice-counter">${P.total}問完了 ／ 正解 ${P.correct}問</div>`;
+  wrap.innerHTML = `
+    ${counter}
+    <div class="q-card" style="margin-bottom:14px;">
+      <div class="q-sub">「${q.display}」（${q.hint}）</div>
+    </div>
+    <div class="reveal-wrap">
+      <div class="reveal-split">
+        <div class="reveal-panel">
+          <label>あなたの答え</label>
+          <div class="reveal-canvas-box" id="psnap-box"></div>
+        </div>
+        <div class="reveal-panel">
+          <label>正解</label>
+          <div class="reveal-kanji-box">${q.answer}</div>
+        </div>
+      </div>
+      <div style="font-size:14px;text-align:center;color:var(--gray);margin-bottom:12px;">合っていましたか？</div>
+      <div class="assess-row">
+        <button class="btn-assess btn-wrong-ans" onclick="recordPracticeResult(P.q,false,'')">✗ 不正解</button>
+        <button class="btn-assess btn-correct" onclick="recordPracticeResult(P.q,true,'')">○ 正解</button>
+      </div>
+    </div>
+    <button class="btn-end-practice" onclick="endPractice()">練習を終わる</button>
+  `;
+  const box = document.getElementById('psnap-box');
+  if (box && snap) box.appendChild(snap);
+}
+
+function recordPracticeResult(q, ok, userAns) {
+  vibrate(ok ? [40] : [60,40,60]);
+  P.total++;
+  if (ok) P.correct++;
+
+  // SM-2に記録（練習でも学習履歴に反映）
+  const wk = q.wo.w;
+  if (!S.kanjiStats[wk]) S.kanjiStats[wk] = {correct:0, total:0};
+  S.kanjiStats[wk].total++;
+  S.totalAns++;
+  if (!S.sessionHistory) S.sessionHistory = [];
+  S.sessionHistory = [...S.sessionHistory.slice(-9), wk];
+  if (ok) {
+    S.kanjiStats[wk].correct++;
+    S.totalRight++;
+    S.char.bond = Math.min(100, (S.char.bond||0) + 1);
+    Q.combo = (Q.combo||0) + 1;
+    if (Q.combo === 3) showComboToast('3連続正解！');
+    else if (Q.combo === 5) showComboToast('5連続！すごい！');
+  } else {
+    Q.combo = 0;
+  }
+  const existing = S.reviewList[wk] || { ef:2.5, reps:0, interval:1, wrongStreak:0 };
+  const updated = sm2Update(existing, ok);
+  if (ok && updated.reps >= 3 && updated.interval >= 7) delete S.reviewList[wk];
+  else if (!ok || S.reviewList[wk]) S.reviewList[wk] = updated;
+  updateCharPhase();
+  save();
+
+  // フィードバック表示してから次へ
+  const wrap = document.getElementById('practice-wrap');
+  const fbClass = ok ? 'correct' : 'wrong';
+  const fbMsg = ok
+    ? `<span class="feedback-ans">正解！</span>`
+    : `<span class="feedback-ans">正解：${q.answer}</span><span class="feedback-detail">${q.wo.r}（${q.wo.m}）</span>`;
+  const counter = `<div class="practice-counter">${P.total}問完了 ／ 正解 ${P.correct}問</div>`;
+  wrap.innerHTML = `
+    ${counter}
+    <div class="q-card" style="margin-bottom:14px;">
+      <div class="q-main" style="font-size:28px;">${q.type==='yomi'?q.display:q.answer}</div>
+    </div>
+    <div class="feedback-box ${fbClass}">${fbMsg}</div>
+    <button class="btn-next" onclick="renderPracticeQ()">次の問題 →</button>
+    <button class="btn-end-practice" onclick="endPractice()">練習を終わる</button>
+  `;
+}
+
+function endPractice() {
+  P.running = false;
+  dc = null;
+  const wrap = document.getElementById('practice-wrap');
+  const pct = P.total > 0 ? Math.round(P.correct / P.total * 100) : 0;
+  const cls = pct===100?'perfect':pct>=60?'good':'poor';
+  const charMsg = P.total === 0 ? 'また来てね。' :
+    pct===100 ? '満点！さすがだね。' :
+    pct>=80   ? 'いい感じ！この調子で続けよう。' :
+    pct>=60   ? 'もう少しで合格ライン。頑張れ！' :
+    'ちょっと難しかったね。また一緒に練習しよう。';
+
+  wrap.innerHTML = `
+    <div class="practice-result">
+      <div class="pr-score ${cls}">${P.correct}<span style="font-size:28px;font-weight:400;"> / ${P.total}</span></div>
+      <div class="pr-label">正解率 ${pct}%</div>
+      <div class="char-section" style="margin-bottom:20px;text-align:left;">
+        <div class="char-img-wrap">
+          <div class="char-avatar" style="width:52px;height:52px;"><img src="ritolun.jpg" alt="りとるん"></div>
+        </div>
+        <div class="char-bubble">${charMsg}</div>
+      </div>
+      <button class="btn-primary" onclick="startPractice()">もう一度練習する</button>
+      <button class="btn-secondary mt8" style="color:var(--blue);border-color:var(--blue);" onclick="renderPracticeSetup()">設定を変える</button>
+    </div>
+  `;
 }
 
 // ══════════════════════════════════════════════════════════════
