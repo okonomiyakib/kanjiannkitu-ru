@@ -1,4 +1,4 @@
-const CACHE = 'kanji-v4';
+const CACHE = 'kanji-v5';
 const ASSETS = [
   './',
   './index.html',
